@@ -6,7 +6,7 @@ build/
 .pypirc
 *.py[cod]
 **/node_modules/
-*/package-lock.json
+**/package-lock.json
 */static/
 js/dist/
 */*.tgz
@@ -14,7 +14,8 @@ package/
 *.old*
 *test.*
 js/temp.*
-*/yarn.lock
+**/yarn.lock
+**/.yarn
 
 # Compiled javascript
 ipychart/nbextension/
