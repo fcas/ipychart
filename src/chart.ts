@@ -1,8 +1,5 @@
 // Global imports
-import {
-    DOMWidgetModel,
-    DOMWidgetView,
-} from '@jupyter-widgets/base';
+import { DOMWidgetModel, DOMWidgetView } from '@jupyter-widgets/base';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import ChartZoom from 'chartjs-plugin-zoom';
@@ -135,7 +132,7 @@ const ChartView = DOMWidgetView.extend({
                 _.set(
                     options,
                     callbackPath,
-                    new Function(`return ${_.get(options, callbackPath)}`)(),
+                    new Function(`return ${_.get(options, callbackPath)}`)()
                 );
             }
         });
@@ -147,7 +144,7 @@ const ChartView = DOMWidgetView.extend({
                     _.set(
                         scale,
                         callbackPath,
-                        new Function(`return ${_.get(scale, callbackPath)}`)(),
+                        new Function(`return ${_.get(scale, callbackPath)}`)()
                     );
                 }
             });
@@ -157,7 +154,7 @@ const ChartView = DOMWidgetView.extend({
         if (colorscheme) {
             options = _.merge(
                 { plugins: { colorschemes: { scheme: colorscheme, override: true } } },
-                options,
+                options
             );
         }
 
@@ -175,7 +172,7 @@ const ChartView = DOMWidgetView.extend({
                     },
                 },
             },
-            options,
+            options
         );
 
         // Set aspect ratio
@@ -195,7 +192,7 @@ const ChartView = DOMWidgetView.extend({
         this.input.options = this.convert_input_options(
             this.model.get('_options_sync'),
             this.input.colorscheme,
-            this.input.zoom,
+            this.input.zoom
         );
         this.input.data = this.convert_input_data(this.model.get('_data_sync'), this.input.options);
         this.input.kind = this.model.get('_kind_sync');
