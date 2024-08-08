@@ -41,7 +41,7 @@ dependencies = [
     "pydash>=4.8.0",
     "scikit-learn>=0.23.2",
 ]
-version = "0.4.1"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 examples = []
@@ -94,20 +94,5 @@ path = "."
 build_cmd = "build:prod"
 npm = ["jlpm"]
 
-[tool.tbump]
-field = [
-    { name = "channel", default = "" },
-    { name = "release", default = "" },
-]
-file = [
-    { src = "pyproject.toml", version_template = "version = \"{major}.{minor}.{patch}{channel}{release}\"" },
-    { src = "ipychart/_version.py" },
-]
-
-[tool.tbump.version]
-current = "0.4.1"
-regex = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)((?P<channel>a|b|rc|.dev)(?P<release>\\d+))?"
-
-[tool.tbump.git]
-message_template = "Bump to {new_version}"
-tag_template = "v{new_version}"
+[tool.hatch.version]
+path = "ipychart/_version.py"
