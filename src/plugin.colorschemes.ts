@@ -9,24 +9,33 @@ import { isArray } from 'chart.js/helpers';
 
 const EXPANDO_KEY = '$colorschemes';
 
-function addAlpha(hex) {
-    let c;
-    if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
-        c = hex.substring(1).split('');
-        if (c.length === 3) {
-            c = [c[0], c[0], c[1], c[1], c[2], c[2]];
-        }
-        c = `0x${c.join('')}`;
-        return `rgba(${[(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',')},0.5)`;
+function addAlpha(hex: string): string {
+    if (!/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+        throw new Error('Bad Hex');
     }
-    throw new Error('Bad Hex');
+
+    // Expand shorthand hex code to full form
+    let c = hex.substring(1).split('');
+    if (c.length === 3) {
+        c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    }
+
+    // Convert hex code to a number
+    const hexValue = parseInt(c.join(''), 16);
+
+    // Extract RGB values and return rgba string
+    const r = (hexValue >> 16) & 255;
+    const g = (hexValue >> 8) & 255;
+    const b = hexValue & 255;
+
+    return `rgba(${r}, ${g}, ${b}, 0.5)`;
 }
 
-function getScheme(scheme) {
-    if (isArray(scheme) || scheme == null) {
+function getScheme(scheme: any) {
+    if (isArray(scheme) || scheme === null) {
         return scheme;
     }
-    const colorschemes = Chart.colorschemes || {};
+    const colorschemes = (Chart as any).colorschemes || {}; // Cast 'Chart' as 'any' to avoid TypeScript error
     const arr = scheme.split('.');
     const category = colorschemes[arr[0]];
     return category[arr[1]];
@@ -35,7 +44,7 @@ function getScheme(scheme) {
 const ColorSchemesPlugin = {
     id: 'colorschemes',
 
-    beforeUpdate(chart, args, options) {
+    beforeUpdate(chart: any, args: any, options: any) {
         // Please note that in v3, the args argument was added. It was not used before it was added,
         // so we just check if it is not actually our options object
         if (options === undefined) {
@@ -43,18 +52,19 @@ const ColorSchemesPlugin = {
         }
 
         const scheme = getScheme(options.scheme);
-        const { reverse } = false;
-        const { override } = true;
-        let length;
-        let colorIndex;
-        let colorCode;
+        const reverse = false;
+        const override = true;
+        let length: number;
+        let colorIndex: number;
+        let colorCode: string;
 
         if (scheme) {
             length = scheme.length;
 
             // Set scheme colors
-            chart.config.data.datasets.forEach((dataset, datasetIndex) => {
-                colorIndex = datasetIndex % length;
+            chart.config.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+                // Added type annotations for 'dataset' and 'datasetIndex'
+                colorIndex = datasetIndex % length!;
                 colorCode = scheme[reverse ? length - colorIndex - 1 : colorIndex];
 
                 // Object to store which color option is set
@@ -89,10 +99,13 @@ const ColorSchemesPlugin = {
                     case 'polarArea':
                         if (typeof dataset.backgroundColor === 'undefined' || override) {
                             dataset[EXPANDO_KEY].backgroundColor = dataset.backgroundColor;
-                            dataset.backgroundColor = dataset.data.map((data, dataIndex) => {
-                                colorIndex = dataIndex % length;
-                                return scheme[reverse ? length - colorIndex - 1 : colorIndex];
-                            });
+                            dataset.backgroundColor = dataset.data.map(
+                                (data: any, dataIndex: number) => {
+                                    // Added type annotations for 'data' and 'dataIndex'
+                                    colorIndex = dataIndex % length!;
+                                    return scheme[reverse ? length - colorIndex - 1 : colorIndex];
+                                }
+                            );
                         }
                         break;
                     // For bar chart backgroundColor (including fillAlpha) and borderColor are set
@@ -118,9 +131,9 @@ const ColorSchemesPlugin = {
         }
     },
 
-    afterUpdate(chart) {
+    afterUpdate(chart: any) {
         // Unset colors
-        chart.config.data.datasets.forEach((dataset) => {
+        chart.config.data.datasets.forEach((dataset: any) => {
             if (dataset[EXPANDO_KEY]) {
                 if (Object.prototype.hasOwnProperty.call(dataset[EXPANDO_KEY], 'backgroundColor')) {
                     dataset.backgroundColor = dataset[EXPANDO_KEY].backgroundColor;

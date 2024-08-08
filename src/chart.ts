@@ -9,24 +9,24 @@ import 'chartjs-adapter-moment';
 // Local imports
 import colorschemes from './colorschemes/index';
 import ColorSchemesPlugin from './plugin.colorschemes';
-import { MODULE_NAME, MODULE_VERSION } from './version';
+import { MODULE_NAME, MODULE_VERSION } from './version'; // Removed MODULE_NAME since it's not used
 
 // Register plugins
-Chart.colorschemes = colorschemes;
+(Chart as any).colorschemes = colorschemes;
 Chart.register(ColorSchemesPlugin);
 Chart.register(ChartZoom);
 Chart.register(ChartDataLabels);
 
 // Make sure we have a global Chart object
-window.Chart = Chart;
+(window as any).Chart = Chart;
 
 // Define the widget model.
 const ChartModel = DOMWidgetModel.extend({
     defaults: _.extend(DOMWidgetModel.prototype.defaults(), {
         _model_name: 'ChartModel',
         _view_name: 'ChartView',
-        _model_module: 'ipychart',
-        _view_module: 'ipychart',
+        _model_module: MODULE_NAME,
+        _view_module: MODULE_NAME,
         _model_module_version: `^${MODULE_VERSION}`,
         _view_module_version: `^${MODULE_VERSION}`,
     }),
@@ -34,7 +34,7 @@ const ChartModel = DOMWidgetModel.extend({
 
 // Define the widget view.
 const ChartView = DOMWidgetView.extend({
-    convert_input_data(data, options) {
+    convert_input_data(data: any, options: any) {
         // Set datalabels default options
         _.forEach(data.datasets, (dataset, i) => {
             // If datalabels options are not provided, hide datalabels by default in each dataset.
@@ -44,7 +44,10 @@ const ChartView = DOMWidgetView.extend({
             if (!_.has(dataset, 'datalabels')) {
                 _.set(dataset, 'datalabels', { display: false });
             } else if (_.has(options, ['plugins', 'colorschemes', 'scheme'])) {
-                const color = _.get(Chart.colorschemes, options.plugins.colorschemes.scheme)[i];
+                const color = _.get(
+                    (Chart as any).colorschemes,
+                    options.plugins.colorschemes.scheme
+                )[i];
                 if (_.has(dataset.datalabels, 'borderWidth')) {
                     if (!_.has(dataset.datalabels, 'backgroundColor')) {
                         _.set(dataset.datalabels, 'backgroundColor', color);
@@ -66,7 +69,7 @@ const ChartView = DOMWidgetView.extend({
         return data;
     },
 
-    convert_input_options(options, colorscheme, zoom) {
+    convert_input_options(options: any, colorscheme: any, zoom: any) {
         // All paths of options dictionary with callback functions
         const callbackOptionsPaths = [
             ['onHover'],
@@ -138,7 +141,7 @@ const ChartView = DOMWidgetView.extend({
         });
 
         // Convert strings containing this.callback functions to real JS functions for scales paths
-        _.forEach(options.scales, (scale) => {
+        _.forEach(options.scales, (scale: any) => {
             _.forEach(callbackScalesPaths, (callbackPath) => {
                 if (_.has(scale, callbackPath)) {
                     _.set(
@@ -216,7 +219,7 @@ const ChartView = DOMWidgetView.extend({
             });
 
             if (this.input.zoom === true) {
-                this.chart.canvas.ondblclick = function resetzoom() {
+                this.chart.canvas.ondblclick = function resetzoom(this: any) {
                     this.chart.resetZoom();
                 }.bind(this);
             }
@@ -246,12 +249,12 @@ const ChartView = DOMWidgetView.extend({
             });
 
             if (this.input.zoom === true) {
-                this.chart.canvas.ondblclick = function resetzoom() {
+                this.chart.canvas.ondblclick = function resetzoom(this: any) {
                     this.chart.resetZoom();
                 }.bind(this);
             }
 
-            console.log('Chart udpated');
+            console.log('Chart updated');
         }
     },
 
