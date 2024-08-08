@@ -1,17 +1,15 @@
 import json
 import random
-
-import numpy as np
-import ipywidgets as widgets
-
 from typing import Union
-from pydash import has, set_, merge
-from traitlets import Unicode, default, Dict, Bool
-from ipywidgets.embed import embed_minimal_html, dependency_state, embed_data
+
+import ipywidgets as widgets
+import numpy as np
+from ipywidgets.embed import dependency_state, embed_data, embed_minimal_html
+from pydash import has, merge, set_
+from traitlets import Bool, Dict, Unicode, default
 
 from ._version import __version__
-
-from .values import KINDS, COLORSCHEMES
+from .values import COLORSCHEMES, KINDS
 
 MSG_FORMAT = (
     "Wrong input format for {} argument. See "
@@ -33,7 +31,6 @@ MSG_COLORSCHEME = (
 )
 
 
-@widgets.register
 class Chart(widgets.DOMWidget):
     """
     The power of Chart.js with Python.
@@ -61,7 +58,7 @@ class Chart(widgets.DOMWidget):
             Defaults to True.
 
     Raises:
-        ValueError: This exception is raised when the Chart reveive an
+        ValueError: This exception is raised when the Chart receives an
             unexpected argument.
 
     Examples:
@@ -97,7 +94,7 @@ class Chart(widgets.DOMWidget):
         data: dict,
         kind: str,
         options: Union[dict, None] = None,
-        colorscheme: list[str, None] = None,
+        colorscheme: Union[str, None] = None,
         zoom: bool = True,
     ):
         super().__init__()
@@ -191,25 +188,27 @@ class Chart(widgets.DOMWidget):
             raise ValueError(MSG_FORMAT.format("data"))
         if not len(datasets):
             raise ValueError(MSG_FORMAT.format("data"))
-        if not ["data" in ds for ds in datasets] == [True] * len(datasets):
+        if not all(["data" in ds for ds in datasets]):
             raise ValueError(MSG_FORMAT.format("data"))
 
         for dataset in datasets:
-            if "kind" in ["bubble", "scatter"]:
+            if self._kind in ["bubble", "scatter"]:
                 if not all(isinstance(x, dict) for x in dataset["data"]):
                     raise ValueError(MSG_FORMAT.format("data['datasets']"))
                 if not all(
-                    k in p for k in ("x", "y", "r") for p in self._data
+                    k in p for k in ("x", "y", "r") for p in dataset["data"]
                 ):
                     raise ValueError(MSG_FORMAT.format("data"))
 
-            if "datalabels" in dataset:
-                if not isinstance(dataset["datalabels"], dict):
-                    raise ValueError(MSG_FORMAT.format("data"))
-
-        if "labels" in self._data:
-            if not isinstance(self._data["labels"], list):
+            if "datalabels" in dataset and not isinstance(
+                dataset["datalabels"], dict
+            ):
                 raise ValueError(MSG_FORMAT.format("data"))
+
+        if "labels" in self._data and not isinstance(
+            self._data["labels"], list
+        ):
+            raise ValueError(MSG_FORMAT.format("data"))
 
         # Validate kind argument
         if self._kind not in KINDS:
@@ -318,7 +317,7 @@ class Chart(widgets.DOMWidget):
             "rgba(255, 206, 87, 0.2)",
         ]
 
-        # Chosen colors for the ten fist datasets then random colors
+        # Chosen colors for the ten first datasets then random colors
         colors_all = [
             "rgba(54, 163, 235, 0.2)",
             "rgba(254, 119, 124, 0.2)",
@@ -346,7 +345,7 @@ class Chart(widgets.DOMWidget):
         # Set a mix of color if only one dataset
         if len(self._data["datasets"]) == 1:
             ds = self._data["datasets"][0]
-            ds_type = ds["type"] if "type" in ds else self._kind
+            ds_type = ds.get("type", self._kind)
 
             if bgc not in ds:
                 if ds_type in lrsb:
@@ -376,7 +375,7 @@ class Chart(widgets.DOMWidget):
         # Set one color per dataset if more than one dataset
         else:
             for idx, ds in enumerate(self._data["datasets"]):
-                ds_type = ds["type"] if "type" in ds else self._kind
+                ds_type = ds.get("type", self._kind)
 
                 if bgc not in ds:
                     if ds_type in lrsb + bars:
