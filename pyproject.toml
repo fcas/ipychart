@@ -10,7 +10,7 @@ build-backend = "hatchling.build"
 name = "ipychart"
 description = "A Jupyter - Chart.js bridge enabling interactive data visualization with Python."
 readme = "README.md"
-license = { file = "LICENSE.txt" }
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [
     { name = "Nicolas Houlier", email = "nicolas.houlier@gmail.com" },
