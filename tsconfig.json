@@ -19,7 +19,8 @@
         "strictPropertyInitialization": false,
         "target": "es2015",
         "types": [
-            "jest"
+            "jest",
+            "node"
         ]
     },
     "include": [
