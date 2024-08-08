@@ -1,5 +1,8 @@
 // Global imports
-import * as widgets from '@jupyter-widgets/base';
+import {
+    DOMWidgetModel,
+    DOMWidgetView,
+} from '@jupyter-widgets/base';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import ChartZoom from 'chartjs-plugin-zoom';
@@ -9,7 +12,7 @@ import 'chartjs-adapter-moment';
 // Local imports
 import colorschemes from './colorschemes/index';
 import ColorSchemesPlugin from './plugin.colorschemes';
-import version from './version';
+import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Register plugins
 Chart.colorschemes = colorschemes;
@@ -21,19 +24,19 @@ Chart.register(ChartDataLabels);
 window.Chart = Chart;
 
 // Define the widget model.
-const ChartModel = widgets.DOMWidgetModel.extend({
-    defaults: _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
+const ChartModel = DOMWidgetModel.extend({
+    defaults: _.extend(DOMWidgetModel.prototype.defaults(), {
         _model_name: 'ChartModel',
         _view_name: 'ChartView',
         _model_module: 'ipychart',
         _view_module: 'ipychart',
-        _model_module_version: `^${version}`,
-        _view_module_version: `^${version}`,
+        _model_module_version: `^${MODULE_VERSION}`,
+        _view_module_version: `^${MODULE_VERSION}`,
     }),
 });
 
 // Define the widget view.
-const ChartView = widgets.DOMWidgetView.extend({
+const ChartView = DOMWidgetView.extend({
     convert_input_data(data, options) {
         // Set datalabels default options
         _.forEach(data.datasets, (dataset, i) => {
