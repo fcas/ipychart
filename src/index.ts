@@ -1,2 +1,2 @@
-// Export widget models and views.
+export * from './version';
 export * from './chart';
