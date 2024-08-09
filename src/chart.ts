@@ -9,7 +9,7 @@ import 'chartjs-adapter-moment';
 // Local imports
 import colorschemes from './colorschemes/index';
 import ColorSchemesPlugin from './plugin.colorschemes';
-import { MODULE_NAME, MODULE_VERSION } from './version'; // Removed MODULE_NAME since it's not used
+import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Register plugins
 (Chart as any).colorschemes = colorschemes;
@@ -21,20 +21,36 @@ Chart.register(ChartDataLabels);
 (window as any).Chart = Chart;
 
 // Define the widget model.
-const ChartModel = DOMWidgetModel.extend({
-    defaults: _.extend(DOMWidgetModel.prototype.defaults(), {
-        _model_name: 'ChartModel',
-        _view_name: 'ChartView',
-        _model_module: MODULE_NAME,
-        _view_module: MODULE_NAME,
-        _model_module_version: `^${MODULE_VERSION}`,
-        _view_module_version: `^${MODULE_VERSION}`,
-    }),
-});
+export class ChartModel extends DOMWidgetModel {
+    defaults() {
+        return {
+            ...super.defaults(),
+            _model_name: 'ChartModel',
+            _view_name: 'ChartView',
+            _model_module: MODULE_NAME,
+            _view_module: MODULE_NAME,
+            _model_module_version: `^${MODULE_VERSION}`,
+            _view_module_version: `^${MODULE_VERSION}`,
+        };
+    }
+}
 
 // Define the widget view.
-const ChartView = DOMWidgetView.extend({
-    convert_input_data(data: any, options: any) {
+export class ChartView extends DOMWidgetView {
+    input: any;
+    canvas: HTMLCanvasElement | null;
+    ctx: CanvasRenderingContext2D | null;
+    chart: Chart | null;
+
+    constructor(options: any) {
+        super(options);
+        this.input = null;
+        this.canvas = null;
+        this.ctx = null;
+        this.chart = null;
+    }
+
+    convert_input_data(data: any, options: any): void {
         // Set datalabels default options
         _.forEach(data.datasets, (dataset, i) => {
             // If datalabels options are not provided, hide datalabels by default in each dataset.
@@ -67,9 +83,9 @@ const ChartView = DOMWidgetView.extend({
         });
 
         return data;
-    },
+    }
 
-    convert_input_options(options: any, colorscheme: any, zoom: any) {
+    convert_input_options(options: any, colorscheme: any, zoom: any): void {
         // All paths of options dictionary with callback functions
         const callbackOptionsPaths = [
             ['onHover'],
@@ -184,9 +200,9 @@ const ChartView = DOMWidgetView.extend({
         }
 
         return options;
-    },
+    }
 
-    render() {
+    render(): void {
         // Get data and type from python
         this.input = document.createElement('input');
         this.input.colorscheme = this.model.get('_colorscheme_sync');
@@ -212,7 +228,7 @@ const ChartView = DOMWidgetView.extend({
             this.ctx = this.canvas.getContext('2d');
 
             // Create chart
-            this.chart = new Chart(this.ctx, {
+            this.chart = new Chart(this.ctx as CanvasRenderingContext2D, {
                 type: this.input.kind,
                 data: this.input.data,
                 options: this.input.options,
@@ -225,7 +241,7 @@ const ChartView = DOMWidgetView.extend({
             }
 
             // Add element to output
-            if (!this.el.canvas) {
+            if (!this.el.contains(this.canvas)) {
                 this.el.appendChild(this.canvas);
             }
             console.log('Chart created');
@@ -242,7 +258,7 @@ const ChartView = DOMWidgetView.extend({
         } else {
             // Update chart
             this.chart.destroy();
-            this.chart = new Chart(this.ctx, {
+            this.chart = new Chart(this.ctx as CanvasRenderingContext2D, {
                 type: this.input.kind,
                 data: this.input.data,
                 options: this.input.options,
@@ -256,30 +272,30 @@ const ChartView = DOMWidgetView.extend({
 
             console.log('Chart updated');
         }
-    },
+    }
 
-    data_changed() {
+    data_changed(): void {
         this.input.data = this.model.get('_data_sync');
         this.render();
-    },
-    options_changed() {
+    }
+    options_changed(): void {
         this.input.options = this.model.get('_options_sync');
         this.render();
-    },
-    kind_changed() {
+    }
+    kind_changed(): void {
         this.input.kind = this.model.get('_kind_sync');
         this.render();
-    },
-    colorscheme_changed() {
+    }
+    colorscheme_changed(): void {
         this.input.colorscheme = this.model.get('_colorscheme_sync');
         this.render();
-    },
-    zoom_changed() {
+    }
+    zoom_changed(): void {
         this.input.zoom = this.model.get('_zoom');
         this.render();
-    },
+    }
 
-    input_changed() {
+    input_changed(): void {
         this.model.set('_data_sync', this.input.data);
         this.model.set('_options_sync', this.input.options);
         this.model.set('_kind_sync', this.input.kind);
@@ -287,7 +303,5 @@ const ChartView = DOMWidgetView.extend({
         this.model.set('_zoom_sync', this.input.zoom);
         this.model.save_changes();
         this.render();
-    },
-});
-
-export { ChartModel, ChartView };
+    }
+}
