@@ -1,16 +1,16 @@
-import pandas as pd
-import numpy as np
-
 from typing import Union
+
+import numpy as np
+import pandas as pd
 from pandas.api.types import is_numeric_dtype
-from sklearn.neighbors import KernelDensity
 from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KernelDensity
 
 from .chart import Chart
 from .utils.plots_utils import (
-    _create_chart_options,
     _create_chart_data_agg,
     _create_chart_data_count,
+    _create_chart_options,
 )
 
 

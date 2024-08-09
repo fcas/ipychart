@@ -1,8 +1,8 @@
-import pandas as pd
-
 from typing import Union
-from pydash import set_, merge
+
+import pandas as pd
 from pandas.api.types import is_numeric_dtype
+from pydash import merge, set_
 
 
 def _create_chart_options(

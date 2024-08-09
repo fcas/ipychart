@@ -1,5 +1,6 @@
-from ipychart import Chart
 from pydash import has
+
+from ipychart import Chart
 
 
 def test_colorscheme_overwrite_default_style():

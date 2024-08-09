@@ -1,4 +1,5 @@
 import pytest
+
 from ipychart import Chart
 
 
