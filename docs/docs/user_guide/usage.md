@@ -64,7 +64,7 @@ mychart = Chart(
     },
 
     # Configuration options go here
-    'options': {}
+    options={}
 )
 ```
 
