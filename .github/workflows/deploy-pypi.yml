@@ -2,7 +2,9 @@ name: Deploy ipychart to PyPI
 on:
   push:
     branches:
-      - master 
+      - master
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
