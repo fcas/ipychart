@@ -16,7 +16,7 @@ from .utils.exceptions import (
     InvalidChartOptionsError,
     InvalidChartZoomError,
 )
-from .utils.lists import COLORSCHEMES, KINDS
+from .utils.lists import COLORSCHEMES, KINDS, OPTIONS
 from .utils.messages import MSG_COLORSCHEME, MSG_FORMAT, MSG_KIND
 
 
@@ -268,21 +268,7 @@ class Chart(widgets.DOMWidget):
                 message=MSG_FORMAT.format("options"), options=self._options
             )
 
-        all_options = [
-            "legend",
-            "title",
-            "scales",
-            "layout",
-            "animation",
-            "hover",
-            "plugins",
-            "legendCallback",
-            "indexAxis",
-            "aspectRatio",
-            "maintainAspectRatio",
-        ]
-
-        if not set(self._options.keys()).issubset(set(all_options)):
+        if not set(self._options.keys()).issubset(set(OPTIONS)):
             raise InvalidChartOptionsError(
                 message=MSG_FORMAT.format("options"), options=self._options
             )

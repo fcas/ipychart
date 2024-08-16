@@ -9,6 +9,21 @@ KINDS = [
     "scatter",
 ]
 
+OPTIONS = [
+    "legend",
+    "title",
+    "scales",
+    "layout",
+    "animation",
+    "hover",
+    "plugins",
+    "legendCallback",
+    "indexAxis",
+    "aspectRatio",
+    "maintainAspectRatio",
+]
+
+
 COLORSCHEMES = [
     "brewer.YlGn3",
     "brewer.YlGn4",
