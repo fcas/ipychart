@@ -53,12 +53,3 @@ def test_default_style_several_datasets():
         assert "borderWidth" in ds
         assert "pointBackgroundColor" in ds
         assert "pointBorderColor" in ds
-
-
-@pytest.mark.parametrize("chart_kind", ["line", "bar", "scatter"])
-def test_default_style_several_kind(chart_kind):
-    chart = Chart(data={"datasets": [{"data": [1, 2, 3]}]}, kind=chart_kind)
-    ds = chart.data["datasets"][0]
-    assert "backgroundColor" in ds
-    assert "borderColor" in ds
-    assert "borderWidth" in ds

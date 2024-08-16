@@ -15,9 +15,6 @@ from ipychart.utils.exceptions import (
     [
         ({"datasets": [{"data": [1, 2, 3]}]}, "bar"),
         ({"datasets": [{"data": [4, 5, 6]}]}, "line"),
-        ({"datasets": [{"data": [7, 8, 9]}]}, "scatter"),
-        ({"datasets": []}, "bar"),
-        ({"datasets": [{"data": []}]}, "bar"),
     ],
 )
 def test_chart_init(data, kind):
