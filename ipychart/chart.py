@@ -9,26 +9,15 @@ from pydash import has, merge, set_
 from traitlets import Bool, Dict, Unicode, default
 
 from ._version import __version__
+from .utils.exceptions import (
+    InvalidChartColorschemeError,
+    InvalidChartDataError,
+    InvalidChartKindError,
+    InvalidChartOptionsError,
+    InvalidChartZoomError,
+)
+from .utils.messages import MSG_COLORSCHEME, MSG_FORMAT, MSG_KIND
 from .values import COLORSCHEMES, KINDS
-
-MSG_FORMAT = (
-    "Wrong input format for {} argument. See "
-    "https://nicohlr.github.io/ipychart/user_guide/usage.html "
-    "for more details"
-)
-
-MSG_KIND = (
-    "Chart kind must be one of : line, bar, radar, doughnut,"
-    "polarArea, bubble, pie, scatter. See "
-    "https://nicohlr.github.io/ipychart/user_guide/charts.html "
-    "for more details"
-)
-
-MSG_COLORSCHEME = (
-    "Chart colorscheme must be one of the exposed colorschemes. See "
-    "https://nagix.github.io/chartjs-plugin-colorschemes/colorchart.html "
-    "for the list of available colorschemes."
-)
 
 
 class Chart(widgets.DOMWidget):
@@ -58,8 +47,11 @@ class Chart(widgets.DOMWidget):
             Defaults to True.
 
     Raises:
-        ValueError: This exception is raised when the Chart receives an
-            unexpected argument.
+        InvalidChartDataError: Raised when the chart data is invalid.
+        InvalidChartKindError: Raised when the chart kind is not supported.
+        InvalidChartOptionsError: Raised when chart options are invalid.
+        InvalidChartColorschemeError: Raised when the colorscheme is invalid.
+        InvalidChartZoomError: Raised when the zoom argument is not a boolean.
 
     Examples:
         Here's a basic example of how to use the `Chart` class:
@@ -181,7 +173,7 @@ class Chart(widgets.DOMWidget):
         https://nicohlr.github.io/ipychart/user_guide/usage.html
 
         Raises:
-            ValueError: If any of the arguments are invalid.
+            InvalidChartDataError: If any of the arguments are invalid.
         """
         self._validate_data_argument()
         self._validate_kind_argument()
@@ -198,36 +190,50 @@ class Chart(widgets.DOMWidget):
         ensures that datasets are lists and contain the necessary data.
 
         Raises:
-            ValueError: If the `data` argument is missing required elements or
-            is incorrectly structured.
+            InvalidChartDataError: If the `data` argument is missing required
+                elements or is incorrectly structured.
         """
         if "datasets" not in self._data or not isinstance(
             self._data["datasets"], list
         ):
-            raise ValueError(MSG_FORMAT.format("data"))
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data"), data=self._data
+            )
         if not len(self._data["datasets"]) or not all(
             "data" in ds for ds in self._data["datasets"]
         ):
-            raise ValueError(MSG_FORMAT.format("data"))
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data"), data=self._data
+            )
 
         for dataset in self._data["datasets"]:
             if self._kind in ["bubble", "scatter"]:
                 if not all(isinstance(x, dict) for x in dataset["data"]):
-                    raise ValueError(MSG_FORMAT.format("data['datasets']"))
+                    raise InvalidChartDataError(
+                        message=MSG_FORMAT.format("data['datasets']"),
+                        data=dataset["data"],
+                    )
                 if not all(
                     k in p for k in ("x", "y", "r") for p in dataset["data"]
                 ):
-                    raise ValueError(MSG_FORMAT.format("data"))
+                    raise InvalidChartDataError(
+                        message=MSG_FORMAT.format("data"), data=dataset["data"]
+                    )
 
             if "datalabels" in dataset and not isinstance(
                 dataset["datalabels"], dict
             ):
-                raise ValueError(MSG_FORMAT.format("data"))
+                raise InvalidChartDataError(
+                    message=MSG_FORMAT.format("data"),
+                    data=dataset["datalabels"],
+                )
 
         if "labels" in self._data and not isinstance(
             self._data["labels"], list
         ):
-            raise ValueError(MSG_FORMAT.format("data"))
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data"), data=self._data["labels"]
+            )
 
     def _validate_kind_argument(self):
         """
@@ -237,10 +243,13 @@ class Chart(widgets.DOMWidget):
         supported chart types defined in the `KINDS` constant.
 
         Raises:
-            ValueError: If the `kind` argument is not a valid chart type.
+            InvalidChartKindError: If the `kind` argument is not a valid chart
+                type.
         """
         if self._kind not in KINDS:
-            raise ValueError(MSG_KIND)
+            raise InvalidChartKindError(
+                message=MSG_KIND, kind=self._kind
+            )
 
     def _validate_options_argument(self):
         """
@@ -251,11 +260,13 @@ class Chart(widgets.DOMWidget):
         Chart.js.
 
         Raises:
-            ValueError: If the `options` argument is not a dictionary or
-            contains unsupported keys.
+            InvalidChartOptionsError: If the `options` argument is not a
+                dictionary or contains unsupported keys.
         """
         if not isinstance(self._options, dict):
-            raise ValueError(MSG_FORMAT.format("options"))
+            raise InvalidChartOptionsError(
+                message=MSG_FORMAT.format("options"), options=self._options
+            )
 
         all_options = [
             "legend",
@@ -272,7 +283,9 @@ class Chart(widgets.DOMWidget):
         ]
 
         if not set(self._options.keys()).issubset(set(all_options)):
-            raise ValueError(MSG_FORMAT.format("options"))
+            raise InvalidChartOptionsError(
+                message=MSG_FORMAT.format("options"), options=self._options
+            )
 
     def _validate_colorscheme_argument(self):
         """
@@ -282,14 +295,17 @@ class Chart(widgets.DOMWidget):
         of the recognized colorschemes defined in the `COLORSCHEMES` constant.
 
         Raises:
-            ValueError: If the `colorscheme` argument is not recognized or
-            valid.
+            InvalidChartColorschemeError: If the `colorscheme` argument is not
+                recognized or valid.
         """
         if (
             self._colorscheme is not None
             and self._colorscheme not in COLORSCHEMES
         ):
-            raise ValueError(MSG_COLORSCHEME)
+            raise InvalidChartColorschemeError(
+                message=MSG_COLORSCHEME,
+                colorscheme=self._colorscheme,
+            )
 
     def _validate_zoom_argument(self):
         """
@@ -299,10 +315,12 @@ class Chart(widgets.DOMWidget):
         the user input is correct for enabling or disabling zoom on the chart.
 
         Raises:
-            ValueError: If the `zoom` argument is not a boolean.
+            InvalidChartZoomError: If the `zoom` argument is not a boolean.
         """
         if not isinstance(self._zoom, bool):
-            raise ValueError(MSG_FORMAT.format("zoom"))
+            raise InvalidChartZoomError(
+                message=MSG_FORMAT.format("zoom"), zoom=self._zoom
+            )
 
     def _set_synced_attributes(self):
         """
@@ -351,19 +369,14 @@ class Chart(widgets.DOMWidget):
         """
         Apply a default style to the chart.
 
-        Provides an aesthetically pleasing chart in ipychart without requiring
-        explicit styling options. For details on styling in ipychart, see:
-
-        https://nicohlr.github.io/ipychart/user_guide/charts.html
-        """
-        """
-        Apply a default style to the chart.
-
-        This method sets a default visual style for the chart when no specific 
-        styling options are provided by the user. It ensures that the chart is 
-        visually appealing by applying colors to datasets based on predefined 
+        This method sets a default visual style for the chart when no specific
+        styling options are provided by the user. It ensures that the chart is
+        visually appealing by applying colors to datasets based on predefined
         color schemes and random colors. The method adapts the style based on
         the number of datasets and the type of chart being used.
+
+        For more details on styling in ipychart, see:
+        https://nicohlr.github.io/ipychart/user_guide/charts.html
 
         Notes:
             - For charts with a single dataset, a set of unique colors is
