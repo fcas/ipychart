@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
@@ -8,32 +8,36 @@ from ..chart import Chart
 
 
 def _create_chart(
-    data_func: Callable,
-    data_func_kwargs: dict,
+    data_func: Callable[..., Dict[str, Any]],
+    data_func_kwargs: Dict[str, Any],
     kind: str,
-    options_func_kwargs: dict,
-    dataset_options: Union[dict, list, None],
-    options: Optional[dict],
-    colorscheme: Optional[str],
-    zoom: bool,
+    options_func_kwargs: Dict[str, Union[str, None]],
+    dataset_options: Optional[
+        Union[Dict[str, Any], List[Dict[str, Any]]]
+    ] = None,
+    options: Optional[Dict[str, Any]] = None,
+    colorscheme: Optional[str] = None,
+    zoom: bool = True,
 ) -> Chart:
     """
     Create a chart using the specified data function and options.
 
-    This helper function consolidates common logic for creating charts, 
-    reducing redundancy across different chart types. It generates the data, 
+    This helper function consolidates common logic for creating charts,
+    reducing redundancy across different chart types. It generates the data,
     configures the chart options, and returns the chart object.
 
     Args:
         data_func (Callable): Function to generate the chart data.
-        data_func_kwargs (dict): Arguments to pass to the data function.
-        kind (str): The type of chart to create (e.g., 'bar', 'line').
-        options_func_kwargs (dict): Arguments to pass to the options creation
+        data_func_kwargs (Dict[str, Any]): Arguments to pass to the data
             function.
-        dataset_options (Union[dict, list, None]): Options related to the
-            dataset object (e.g., colors, labels). Defaults to an empty dict.
-        options (Optional[dict]): Configuration options for the chart (e.g.,
-            axis labels, gridlines). Defaults to None.
+        kind (str): The type of chart to create (e.g., 'bar', 'line').
+        options_func_kwargs (Dict[str, Union[str, None]]): Arguments to pass to
+            the options creation function.
+        dataset_options (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]):
+            Options related to the dataset object (e.g., colors, labels).
+            Defaults to an empty dict.
+        options (Optional[Dict[str, Any]]): Configuration options for the chart
+            (e.g., axis labels, gridlines). Defaults to None.
         colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
         zoom (bool): Whether to enable zoom functionality on the chart.
@@ -60,8 +64,13 @@ def _create_chart(
 
 
 def _create_chart_options(
-    kind: str, x: str, y: str, hue: str, options: dict, agg: str = None
-) -> dict:
+    kind: str,
+    x: str,
+    y: str,
+    hue: str,
+    options: Optional[Dict[str, Any]] = None,
+    agg: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Prepare all the options to create a chart from user's input.
 
@@ -70,45 +79,41 @@ def _create_chart_options(
 
     Args:
         kind (str): The kind of the chart.
-
         x (str): Column of the dataframe used as datapoints for x Axis.
-
         y (str): Column of the dataframe used as datapoints for y Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
+        hue (Optional[str]): Grouping variable that will produce points with
             different colors. Defaults to None.
-
-        options (dict, optional): All options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        options (Optional[Dict[str, Any]]): All options to configure the chart.
+            This dictionary corresponds to the "options" argument of Chart.js.
             Defaults to None.
-
-        agg (str, optional): The aggregator used to gather data (ex:
-            'median' or 'mean'). Defaults to None.
+        agg (Optional[str]): The aggregator used to gather data (e.g., 'median'
+            or 'mean'). Defaults to None.
 
     Returns:
-        dict: options dictionary ready to be inputted into a Chart class (i.e.
-            match ipychart options format).
+        Dict[str, Any]: Options dictionary ready to be inputted into a Chart
+            class (i.e., match ipychart options format).
     """
-    agg_label = "" if not agg else " (" + agg + ")"
-    radials = ["radar", "pie", "polarArea", "doughnut"]
+    agg_label = "" if not agg else f" ({agg})"
+    radials = {"radar", "pie", "polarArea", "doughnut"}
 
     if hue:
         title_cb = (
-            "function(tooltipItem) {"
-            "return '%s = ' + tooltipItem[0].label + ' & ' + '%s = '"
-            " + tooltipItem[0].dataset.label;};"
-        ) % (x, hue)
+            f"function(tooltipItem) {{"
+            f"return '{x} = ' + tooltipItem[0].label + ' & {hue} = '"
+            f" + tooltipItem[0].dataset.label;}};"
+        )
     else:
         title_cb = (
-            "function(tooltipItem) {"
-            "return '%s = ' + tooltipItem[0].label;};"
-        ) % x
+            f"function(tooltipItem) {{"
+            f"return '{x} = ' + tooltipItem[0].label;}};"
+        )
 
     suffix_bubble = "" if kind != "bubble" else ".split(',')[1]"
     label_cb = (
-        "function(tooltipItem) {"
-        "return '%s = ' + tooltipItem.formattedValue%s;};"
-    ) % (y + agg_label, suffix_bubble)
+        f"function(tooltipItem) {{"
+        f"return '{y + agg_label} = ' + tooltipItem.formattedValue"
+        f"{suffix_bubble};}};"
+    )
 
     default_options = {
         "plugins": {
@@ -129,14 +134,13 @@ def _create_chart_options(
         legend_opt = {"display": True}
         default_options = set_(default_options, "plugins.legend", legend_opt)
 
-    # Set legend prefix if "hue" if activated
     if hue:
         hue_label_cb = (
-            "function(chart) {const labels = Chart.defaults.plugins."
-            "legend.labels.generateLabels(chart);labels.map(label "
-            """=> {label['text'] = "%s" + " = " + label['text']; """
-            "return label});return labels;};"
-        ) % hue
+            f"function(chart) {{const labels = Chart.defaults.plugins."
+            f"legend.labels.generateLabels(chart);labels.map(label => "
+            f"{{label['text'] = '{hue} = ' + label['text'];"
+            f"return label;}});return labels;}};"
+        )
 
         default_options = set_(
             default_options,
@@ -144,7 +148,7 @@ def _create_chart_options(
             hue_label_cb,
         )
 
-    options = merge(default_options, options)
+    options = merge(default_options, options) if options else default_options
 
     return options
 
@@ -152,25 +156,22 @@ def _create_chart_options(
 def _create_counted_data_dict(
     data: pd.DataFrame,
     x: str,
-    dataset_options: dict,
-    label: Union[str, None] = None,
-) -> dict:
+    dataset_options: Dict[str, Any],
+    label: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Prepare an ipychart dataset with counted data from a pandas dataframe.
 
     Args:
         data (pd.DataFrame): The dataframe used to draw the chart.
-
         x (str): Column of the dataframe used as datapoints for x Axis.
-
-        dataset_options (dict, optional): These are options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        label (str, optional): The label of the dataset. Defaults to None.
+        dataset_options (Dict[str, Any]): Options related to the dataset object
+            (i.e., options concerning your data).
+        label (Optional[str]): The label of the dataset. Defaults to None.
 
     Returns:
-        dict: data dictionary ready to be inputted into a Chart class (i.e.
-            match ipychart data format).
+        Dict[str, Any]: Data dictionary ready to be inputted into a Chart class
+            (i.e., match ipychart data format).
     """
     if is_numeric_dtype(data[x]):
         dataset = {
@@ -198,36 +199,29 @@ def _create_counted_data_dict(
 def _create_chart_data_count(
     data: pd.DataFrame,
     x: str,
-    hue: Union[str, None] = None,
-    dataset_options: Union[dict, list, None] = None,
-) -> dict:
+    hue: Optional[str] = None,
+    dataset_options: Optional[
+        Union[Dict[str, Any], List[Dict[str, Any]]]
+    ] = None,
+) -> Dict[str, Any]:
     """
     Prepare all the arguments to create a chart from user's input.
 
-    Data are counted before being send to the Chart.
+    Data are counted before being sent to the Chart.
 
     Args:
         data (pd.DataFrame): The dataframe used to draw the chart.
-
         x (str): Column of the dataframe used as datapoints for x Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
+        hue (Optional[str]): Grouping variable that will produce points with
             different colors. Defaults to None.
-
-        dataset_options ([dict, list], optional): These are options related to
-            the dataset object (i.e. options concerning your data). Defaults
-            to {}.
+        dataset_options (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]):
+            These are options related to the dataset object (i.e., options
+            concerning your data). Defaults to {}.
 
     Returns:
-        dict: data dictionary ready to be inputted into a Chart class (i.e.
-            match ipychart data format).
+        Dict[str, Any]: Data dictionary ready to be inputted into a Chart class
+            (i.e., match ipychart data format).
     """
-    assert x in data.columns, f"Column {x} not found in dataframe"
-
-    if hue:
-        assert hue in data.columns, f"{hue} not found in dataframe"
-        assert data[hue].nunique() <= 20, "Too much values in hue (>20)"
-
     if dataset_options is None:
         dataset_options = {}
 
@@ -257,7 +251,6 @@ def _create_chart_data_count(
                         label=str(v),
                     )
                 )
-
             else:
                 data_dict["datasets"].append(
                     _create_counted_data_dict(
@@ -267,7 +260,6 @@ def _create_chart_data_count(
                         label=str(v),
                     )
                 )
-
     else:
         data_dict["datasets"].append(
             _create_counted_data_dict(
@@ -283,80 +275,49 @@ def _create_chart_data_agg(
     kind: str,
     x: str,
     y: str,
-    r: Union[str, None] = None,
-    hue: Union[str, None] = None,
-    agg: Union[str, None] = None,
-    dataset_options: Union[dict, list, None] = None,
-) -> dict:
+    r: Optional[str] = None,
+    hue: Optional[str] = None,
+    agg: Optional[Union[str, Callable]] = "mean",
+    dataset_options: Optional[
+        Union[Dict[str, Any], List[Dict[str, Any]]]
+    ] = None,
+) -> Dict[str, Any]:
     """
     Prepare all the arguments to create a chart from user's input.
 
     Data are automatically aggregated using the method specified in the "agg"
-    argument before being send to the Chart.
+    argument before being sent to the Chart.
 
     Args:
         data (pd.DataFrame): The dataframe used to draw the chart.
-
         kind (str): The kind of the chart.
-
         x (str): Column of the dataframe used as datapoints for x Axis.
-
         y (str): Column of the dataframe used as datapoints for y Axis.
-
-        r (str, optional): Column used to define the radius of the bubbles
+        r (Optional[str]): Column used to define the radius of the bubbles
             (only for bubble chart). Defaults to None.
-
-        hue (str, optional): Grouping variable that will produce points with
+        hue (Optional[str]): Grouping variable that will produce points with
             different colors. Defaults to None.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options ([dict, list], optional): These are options related to
-            the dataset object (i.e. options concerning your data). Defaults
-            to {}.
+        agg (Optional[Union[str, Callable]]): The aggregator used to gather
+            data (e.g., 'median' or 'mean'). Defaults to 'mean'.
+        dataset_options (Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]):
+            These are options related to the dataset object (i.e., options
+            concerning your data). Defaults to {}.
 
     Returns:
-        dict: data dictionary ready to be inputted into a Chart class (i.e.
-         match ipychart data format).
+        Dict[str, Any]: Data dictionary ready to be inputted into a Chart class
+            (i.e., match ipychart data format).
     """
-    assert x in data.columns, f"{x} not found in dataframe"
-    assert y in data.columns, f"{y} not found in dataframe"
-    assert is_numeric_dtype(data[y]), "y must be a numeric column"
-
     if dataset_options is None:
         dataset_options = {}
 
-    if hue:
-        assert hue in data.columns, f"{hue} not found in dataframe"
-        assert data[hue].nunique() <= 20, "Too much values in hue (>20)"
-
-    if len(dataset_options):
-        if isinstance(dataset_options, list):
-            msg_hue_multiple_ds_options = (
-                "For multiple dataset options, you must choose a column "
-                "for hue that will create multiple datasets. Each dataset "
-                "will corresponds to a unique value of the hue column."
-            )
-
-            msg_hue_number_ds_options = (
-                "The number of dataset_options elements must be equal to "
-                "the number of unique values in the hue column."
-            )
-
-            assert hue, msg_hue_multiple_ds_options
-            df_options_check = len(dataset_options) == data[hue].nunique()
-            assert df_options_check, msg_hue_number_ds_options
-
     data_dict = {"datasets": []}
 
-    if kind not in ["scatter", "bubble", "radar"]:
+    if kind not in {"scatter", "bubble", "radar"}:
         data_dict["labels"] = (
             data[x].value_counts(ascending=True, sort=False).index.tolist()
         )
 
         if hue:
-            # Create one dataset for each unique value of the hue column
             for i, v in enumerate(sorted(data[hue].unique())):
                 if isinstance(dataset_options, list):
                     data_dict["datasets"].append(
@@ -370,7 +331,6 @@ def _create_chart_data_agg(
                             **dataset_options[i],
                         }
                     )
-
                 else:
                     data_dict["datasets"].append(
                         {
@@ -393,31 +353,30 @@ def _create_chart_data_agg(
             ]
 
     elif kind == "bubble":
-        assert is_numeric_dtype(data[r]), "r must be a numeric column"
-        assert is_numeric_dtype(data[x]), "x must be a numeric column"
-
         data_dict["labels"] = data[x].tolist()
 
         def row2dictxyr(row):
             return {"x": row[x], "y": row[y], "r": row[r]}
 
         if hue:
-            # Create one dataset for each unique value of the hue column
             for i, v in enumerate(data[hue].unique()):
                 mask = data[hue] == v
                 if isinstance(dataset_options, list):
                     data_dict["datasets"].append(
                         {
-                            "data": data[mask].apply(row2dictxyr, 1).tolist(),
+                            "data": data[mask]
+                            .apply(row2dictxyr, axis=1)
+                            .tolist(),
                             "label": str(v),
                             **dataset_options[i],
                         }
                     )
-
                 else:
                     data_dict["datasets"].append(
                         {
-                            "data": data[mask].apply(row2dictxyr, 1).tolist(),
+                            "data": data[mask]
+                            .apply(row2dictxyr, axis=1)
+                            .tolist(),
                             "label": str(v),
                             **dataset_options,
                         }
@@ -425,53 +384,55 @@ def _create_chart_data_agg(
         else:
             data_dict["datasets"] = [
                 {
-                    "data": data.apply(row2dictxyr, 1).tolist(),
+                    "data": data.apply(row2dictxyr, axis=1).tolist(),
                     **dataset_options,
                 }
             ]
 
     elif kind == "scatter":
-        assert is_numeric_dtype(data[x]), "x must be a numeric column"
-
         data_dict["labels"] = data[x].tolist()
 
         def row2dictxy(row):
             return {"x": row[x], "y": row[y]}
 
         if hue:
-            # Create one dataset for each unique value of the hue column
             for i, v in enumerate(data[hue].unique()):
                 mask = data[hue] == v
                 if isinstance(dataset_options, list):
                     data_dict["datasets"].append(
                         {
-                            "data": data[mask].apply(row2dictxy, 1).tolist(),
+                            "data": data[mask]
+                            .apply(row2dictxy, axis=1)
+                            .tolist(),
                             "label": str(v),
                             **dataset_options[i],
                         }
                     )
-
                 else:
                     data_dict["datasets"].append(
                         {
-                            "data": data[mask].apply(row2dictxy, 1).tolist(),
+                            "data": data[mask]
+                            .apply(row2dictxy, axis=1)
+                            .tolist(),
                             "label": str(v),
                             **dataset_options,
                         }
                     )
         else:
             data_dict["datasets"] = [
-                {"data": data.apply(row2dictxy, 1).tolist(), **dataset_options}
+                {
+                    "data": data.apply(row2dictxy, axis=1).tolist(),
+                    **dataset_options,
+                }
             ]
 
     else:
-        agg_label = "" if not agg else " (" + agg + ")"
+        agg_label = "" if not agg else f" ({agg})"
         data_dict["labels"] = (
             data[x].value_counts(ascending=True, sort=False).index.tolist()
         )
 
         if hue:
-            # Create one dataset for each unique value of the hue column
             for i, v in enumerate(data[hue].unique()):
                 mask = data[hue] == v
                 if isinstance(dataset_options, list):
@@ -486,7 +447,6 @@ def _create_chart_data_agg(
                             **dataset_options[i],
                         }
                     )
-
                 else:
                     data_dict["datasets"].append(
                         {
