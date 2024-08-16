@@ -1,9 +1,62 @@
-from typing import Union
+from typing import Callable, Optional, Union
 
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
+from pydash import merge, set_
 
-from .dict_utils import merge, set_
+from ..chart import Chart
+
+
+def _create_chart(
+    data_func: Callable,
+    data_func_kwargs: dict,
+    kind: str,
+    options_func_kwargs: dict,
+    dataset_options: Union[dict, list, None],
+    options: Optional[dict],
+    colorscheme: Optional[str],
+    zoom: bool,
+) -> Chart:
+    """
+    Create a chart using the specified data function and options.
+
+    This helper function consolidates common logic for creating charts, 
+    reducing redundancy across different chart types. It generates the data, 
+    configures the chart options, and returns the chart object.
+
+    Args:
+        data_func (Callable): Function to generate the chart data.
+        data_func_kwargs (dict): Arguments to pass to the data function.
+        kind (str): The type of chart to create (e.g., 'bar', 'line').
+        options_func_kwargs (dict): Arguments to pass to the options creation
+            function.
+        dataset_options (Union[dict, list, None]): Options related to the
+            dataset object (e.g., colors, labels). Defaults to an empty dict.
+        options (Optional[dict]): Configuration options for the chart (e.g.,
+            axis labels, gridlines). Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
+            Defaults to None.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
+
+    Returns:
+        Chart: A configured ipychart.Chart object ready for rendering.
+    """
+    if dataset_options is None:
+        dataset_options = {}
+
+    data = data_func(**data_func_kwargs, dataset_options=dataset_options)
+    options = _create_chart_options(
+        kind=kind, options=options, **options_func_kwargs
+    )
+
+    return Chart(
+        data=data,
+        kind=kind,
+        options=options,
+        colorscheme=colorscheme,
+        zoom=zoom,
+    )
 
 
 def _create_chart_options(
@@ -71,7 +124,7 @@ def _create_chart_options(
             "x": {"title": {"display": True, "text": x}},
             "y": {"title": {"display": True, "text": y + agg_label}},
         }
-        default_options = set(default_options, "scales", scales_opt)
+        default_options = set_(default_options, "scales", scales_opt)
     else:
         legend_opt = {"display": True}
         default_options = set_(default_options, "plugins.legend", legend_opt)
@@ -309,8 +362,8 @@ def _create_chart_data_agg(
                     data_dict["datasets"].append(
                         {
                             "data": data[data[hue] == v]
-                            .groupby(x)
-                            .agg(agg)[y]
+                            .groupby(x)[y]
+                            .agg(agg)
                             .round(4)
                             .tolist(),
                             "label": str(v),
@@ -322,8 +375,8 @@ def _create_chart_data_agg(
                     data_dict["datasets"].append(
                         {
                             "data": data[data[hue] == v]
-                            .groupby(x)
-                            .agg(agg)[y]
+                            .groupby(x)[y]
+                            .agg(agg)
                             .round(4)
                             .tolist(),
                             "label": str(v),
@@ -333,7 +386,7 @@ def _create_chart_data_agg(
         else:
             data_dict["datasets"] = [
                 {
-                    "data": data.groupby(x).agg(agg)[y].round(4).tolist(),
+                    "data": data.groupby(x)[y].agg(agg).round(4).tolist(),
                     "label": y,
                     **dataset_options,
                 }
@@ -425,8 +478,8 @@ def _create_chart_data_agg(
                     data_dict["datasets"].append(
                         {
                             "data": data[mask]
-                            .groupby(x)
-                            .agg(agg)[y]
+                            .groupby(x)[y]
+                            .agg(agg)
                             .round(4)
                             .tolist(),
                             "label": str(v),
@@ -438,8 +491,8 @@ def _create_chart_data_agg(
                     data_dict["datasets"].append(
                         {
                             "data": data[mask]
-                            .groupby(x)
-                            .agg(agg)[y]
+                            .groupby(x)[y]
+                            .agg(agg)
                             .round(4)
                             .tolist(),
                             "label": str(v),
@@ -449,7 +502,7 @@ def _create_chart_data_agg(
         else:
             data_dict["datasets"] = [
                 {
-                    "data": data.groupby(x).agg(agg)[y].round(4).tolist(),
+                    "data": data.groupby(x)[y].agg(agg).round(4).tolist(),
                     "label": y + agg_label,
                     **dataset_options,
                 }

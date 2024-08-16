@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -8,6 +8,7 @@ from sklearn.neighbors import KernelDensity
 
 from .chart import Chart
 from .utils.plots_utils import (
+    _create_chart,
     _create_chart_data_agg,
     _create_chart_data_count,
     _create_chart_options,
@@ -17,53 +18,43 @@ from .utils.plots_utils import (
 def countplot(
     data: pd.DataFrame,
     x: str,
-    hue: Union[str, None] = None,
-    dataset_options: Union[dict, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    hue: Optional[str] = None,
+    dataset_options: Optional[dict] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
 ) -> Chart:
     """
-    Show the counts of observations in each categorical bin using bars.
+    Create a bar chart that shows the count of observations for each category.
+
+    This function generates a countplot, which displays the number of
+    occurrences for each category in a specified column of a dataframe.
+    Optionally, you can differentiate counts by another categorical variable
+    using the `hue` parameter.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        hue (str, optional): Grouping variable that will produce points
-            with different colors. Defaults to None.
-
-        dataset_options (dict, optional): Options related to the dataset
-            object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis categories.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the
-            chart. Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it
-            is created. Defaults to True.
+        dataset_options (Optional[dict]): Options for customizing the dataset's
+            appearance, such as colors or labels. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
+            Defaults to None.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the countplot.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_count(
-        data=data, x=x, hue=hue, dataset_options=dataset_options
-    )
-
-    options = _create_chart_options(
-        kind="count", options=options, x=x, y="Count", hue=hue
-    )
-
-    return Chart(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_count,
+        data_func_kwargs={"data": data, "x": x, "hue": hue},
         kind="bar",
+        options_func_kwargs={"x": x, "y": "Count", "hue": hue},
+        dataset_options=dataset_options,
         options=options,
         colorscheme=colorscheme,
         zoom=zoom,
@@ -74,53 +65,46 @@ def distplot(
     data: pd.DataFrame,
     x: str,
     bandwidth: Union[float, str] = "auto",
-    gridsize: int = 1000,
-    dataset_options: Union[dict, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    grid_size: int = 1000,
+    dataset_options: Optional[dict] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
     **kwargs,
 ) -> Chart:
     """
-    Fit and plot a univariate kernel density estimate on a line chart.
+    Create a kernel density estimate (KDE) plot on a line chart.
 
-    This is useful to have a representation of the distribution of the
-    data.
+    This function fits a univariate kernel density estimate (KDE) to the data
+    and plots the resulting density curve. It can be used to visualize the
+    distribution of a numeric variable.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        bandwidth ([float, str], optional): Parameter which affect how
-        “smooth” the resulting curve is. If set to 'auto', the optimal
-        bandwidth is found using gridsearch. Defaults to 'auto'.
-
-        gridsize (int, optional): Number of discrete points in the
-            evaluation grid. Defaults to 1000.
-
-        dataset_options (dict, optional): Options related to the dataset
-            object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        bandwidth (Union[float, str]): The bandwidth of the KDE. If 'auto',
+            the optimal bandwidth is determined using grid search.
+            Defaults to 'auto'.
+        grid_size (int): Number of points to evaluate in the KDE grid.
+            Defaults to 1000.
+        dataset_options (Optional[dict]): Options for customizing the dataset's
+            appearance, such as line width or color. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
-            Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it
-            is created. Defaults to True.
-
-        kwargs (optionnal): Other keyword arguments are passed down to
-            scikit-learn's KernelDensity class.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
+        **kwargs: Additional keyword arguments passed to scikit-learn's
+            KernelDensity.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the KDE plot.
     """
-    assert is_numeric_dtype(data[x]), "x must be a numeric column"
-    if isinstance(bandwidth, str):
-        assert bandwidth == "auto", "bandwidth must be an int or 'auto'"
+    if not is_numeric_dtype(data[x]):
+        raise ValueError("x must be a numeric column")
+    if isinstance(bandwidth, str) and bandwidth != "auto":
+        raise ValueError("bandwidth must be a float or 'auto'")
 
     if dataset_options is None:
         dataset_options = {}
@@ -134,22 +118,16 @@ def distplot(
             | (data[x] > (data[x].quantile(0.95) + 0.5 * iqr))
         )
     ]
-
+    max_val = int(data_truncated.max()) + 1
+    min_val = int(data_truncated.min())
     max_val, min_val = (
-        int(data_truncated.max()) + 1,
-        int(data_truncated.min()),
+        max_val + 0.05 * abs(max_val - min_val),
+        min_val - 0.05 * abs(max_val - min_val),
     )
 
-    max_val, min_val = (
-        max_val + 0.05 * (max_val + abs(min_val)),
-        min_val - 0.05 * (max_val + abs(min_val)),
-    )
+    # Create grid for KDE
+    x_grid = np.round(np.linspace(min_val, max_val, num=grid_size), 5)
 
-    # Create grid which will be used to compute kde
-    _, step = np.linspace(min_val, max_val, num=gridsize, retstep=True)
-    x_grid = np.round(np.arange(min_val, max_val, step), 5)
-
-    # If bandwidth is 'auto', find the best bandwidh using gridsearch
     if bandwidth == "auto":
         grid = GridSearchCV(
             KernelDensity(), {"bandwidth": np.linspace(0.1, 2, 30)}, cv=5
@@ -169,37 +147,22 @@ def distplot(
     }
 
     options = _create_chart_options(
-        kind="count",
+        kind="line",
         options=options,
         x=x,
-        y=f"Density (bandwidth: {bandwidth.round(4)})",
+        y=f"Density (bandwidth: {bandwidth:.4f})",
         hue=None,
     )
 
-    # Add ticks formatting to options if not already set
-    # This will not break because keys are created in the
-    # _create_chart_options method called previouly
-    maxtickslimit = 10
-    ticks_format_function = (
-        "function(value, index, ticks) {if (Math.abs(value) >= 1) {"
-        "return Math.round(value);} else {return value.toFixed(3);}}"
+    ticks_options = options["scales"]["x"].get("ticks", {})
+    ticks_options.setdefault("maxTicksLimit", 10)
+    ticks_options.setdefault(
+        "callback",
+        "function(value, index, ticks) {"
+        "if (Math.abs(value) >= 1) {return Math.round(value);} "
+        "else {return value.toFixed(3);}}",
     )
-
-    if "ticks" not in options["scales"]["x"]:
-        options["scales"]["x"].update(
-            {
-                "ticks": {
-                    "maxTicksLimit": maxtickslimit,
-                    "callback": ticks_format_function,
-                }
-            }
-        )
-    else:
-        ticks_options = options["scales"]["x"]["ticks"]
-        if "maxTicksLimit" not in ticks_options:
-            ticks_options["maxTicksLimit"] = maxtickslimit
-        if "callback" not in ticks_options:
-            ticks_options["callback"] = ticks_format_function
+    options["scales"]["x"]["ticks"] = ticks_options
 
     return Chart(
         data=data,
@@ -214,68 +177,53 @@ def lineplot(
     data: pd.DataFrame,
     x: str,
     y: str,
-    hue: Union[str, None] = None,
-    agg: str = "mean",
+    hue: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
     dataset_options: Union[dict, list, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
 ) -> Chart:
     """
-    Plot a line chart.
+    Create a line chart to visualize trends over time or between categories.
 
-    A line chart is a way of plotting data points on a line. Often, it is
-    used to show a trend in the data, or the comparison of two data sets.
+    This function generates a lineplot, which connects data points with a
+    line, showing the relationship between two variables. The `agg` parameter
+    allows for aggregation of data when grouping by `hue`.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
-            different colors. Defaults to None.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options ([dict, list], optional): Options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (str): Column name in `data` to use for the y-axis values.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when
+            grouping data by `hue`. Defaults to "mean".
+        dataset_options (Union[dict, list, None]): Options for customizing
+            the dataset's appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it is
-            created. Defaults to True.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the lineplot.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_agg(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_agg,
+        data_func_kwargs={
+            "data": data,
+            "kind": "line",
+            "x": x,
+            "y": y,
+            "hue": hue,
+            "agg": agg,
+        },
         kind="line",
-        x=x,
-        y=y,
-        hue=hue,
-        agg=agg,
+        options_func_kwargs={"x": x, "y": y, "hue": hue, "agg": agg},
         dataset_options=dataset_options,
-    )
-
-    options = _create_chart_options(
-        kind="line", options=options, x=x, y=y, hue=hue, agg=agg
-    )
-
-    return Chart(
-        data=data,
-        kind="line",
         options=options,
         colorscheme=colorscheme,
         zoom=zoom,
@@ -286,69 +234,53 @@ def barplot(
     data: pd.DataFrame,
     x: str,
     y: str,
-    hue: Union[str, None] = None,
-    agg: str = "mean",
+    hue: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
     dataset_options: Union[dict, list, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
 ) -> Chart:
     """
-    Plot a bar chart.
+    Create a bar chart to show data as vertical bars.
 
-    A bar chart provides a way of showing data values represented as
-    vertical bars. It is sometimes used to show a trend in the data,
-    and the comparison of multiple data sets side by side.
+    This function generates a barplot, which displays data values as vertical
+    bars. The `agg` parameter allows for aggregation of data when grouping by
+    `hue`.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
-            different colors. Defaults to None.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options ([dict, list], optional): Options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (str): Column name in `data` to use for the y-axis values.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when grouping
+            data by `hue`. Defaults to "mean".
+        dataset_options (Union[dict, list, None]): Options for customizing the
+            dataset's appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it is
-            created. Defaults to True.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the barplot.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_agg(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_agg,
+        data_func_kwargs={
+            "data": data,
+            "kind": "bar",
+            "x": x,
+            "y": y,
+            "hue": hue,
+            "agg": agg,
+        },
         kind="bar",
-        x=x,
-        y=y,
-        hue=hue,
-        agg=agg,
+        options_func_kwargs={"x": x, "y": y, "hue": hue, "agg": agg},
         dataset_options=dataset_options,
-    )
-
-    options = _create_chart_options(
-        kind="bar", options=options, x=x, y=y, hue=hue, agg=agg
-    )
-
-    return Chart(
-        data=data,
-        kind="bar",
         options=options,
         colorscheme=colorscheme,
         zoom=zoom,
@@ -359,260 +291,209 @@ def radarplot(
     data: pd.DataFrame,
     x: str,
     y: str,
-    hue: Union[str, None] = None,
-    agg: str = "mean",
+    hue: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
     dataset_options: Union[dict, list, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
 ) -> Chart:
     """
-    Plot a radar chart.
+    Create a radar chart to compare multiple data points.
 
-    A radar chart is a way of showing multiple data points and the
-    variation between them. They are often useful for comparing the
-    points of two or more different data sets.
+    This function generates a radar chart, which displays multiple data points
+    and the variation between them. The `agg` parameter allows for aggregation
+    of data when grouping by `hue`.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
-            different colors. Defaults to None.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options ([dict, list], optional): Options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (str): Column name in `data` to use for the y-axis values.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when grouping
+            data by `hue`. Defaults to "mean".
+        dataset_options (Union[dict, list, None]): Options for customizing the
+            dataset's appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the radar chart.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_agg(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_agg,
+        data_func_kwargs={
+            "data": data,
+            "kind": "radar",
+            "x": x,
+            "y": y,
+            "hue": hue,
+            "agg": agg,
+        },
         kind="radar",
-        x=x,
-        y=y,
-        hue=hue,
-        agg=agg,
+        options_func_kwargs={"x": x, "y": y, "hue": hue, "agg": agg},
         dataset_options=dataset_options,
-    )
-
-    options = _create_chart_options(
-        kind="radar", options=options, x=x, y=y, hue=hue, agg=agg
-    )
-
-    return Chart(
-        data=data, kind="radar", options=options, colorscheme=colorscheme
+        options=options,
+        colorscheme=colorscheme,
+        zoom=False,  # Radar charts typically do not support zoom
     )
 
 
 def doughnutplot(
     data: pd.DataFrame,
     x: str,
-    y: str,
-    agg: str = "mean",
-    dataset_options: Union[dict, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    y: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
+    dataset_options: Optional[dict] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
 ) -> Chart:
     """
-    Plot a doughnut chart.
+    Create a doughnut chart to show relational proportions between data.
 
-    Pie and doughnut charts are excellent at showing the relational
-    proportions between data.
+    This function generates a doughnut chart, which is used to display the
+    proportional relationships among data points. The `agg` parameter allows
+    for aggregation of data when grouping by `hue`.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options (dict, optional): Options related to the dataset
-            object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (Optional[str]): Column name in `data` to use for the y-axis values.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when grouping
+            data. Defaults to "mean".
+        dataset_options (Optional[dict]): Options for customizing the dataset's
+            appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the doughnut chart.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    if y:
-        data = _create_chart_data_agg(
-            data=data,
-            kind="doughnut",
-            x=x,
-            y=y,
-            agg=agg,
-            dataset_options=dataset_options,
-        )
-
-    else:
-        data = _create_chart_data_count(
-            data=data, x=x, dataset_options=dataset_options
-        )
-
-    options = _create_chart_options(
-        kind="doughnut", options=options, x=x, y=y, hue=None, agg=agg
-    )
-
-    return Chart(
-        data=data, kind="doughnut", options=options, colorscheme=colorscheme
+    data_func = _create_chart_data_agg if y else _create_chart_data_count
+    return _create_chart(
+        data_func=data_func,
+        data_func_kwargs={
+            "data": data,
+            "kind": "doughnut",
+            "x": x,
+            "y": y,
+            "agg": agg,
+        },
+        kind="doughnut",
+        options_func_kwargs={"x": x, "y": y, "hue": None, "agg": agg},
+        dataset_options=dataset_options,
+        options=options,
+        colorscheme=colorscheme,
+        zoom=False,  # Doughnut charts typically do not support zoom
     )
 
 
 def pieplot(
     data: pd.DataFrame,
     x: str,
-    y: str = None,
-    agg: str = "mean",
-    dataset_options: Union[dict, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    y: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
+    dataset_options: Optional[dict] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
 ) -> Chart:
     """
-    Plot a pie chart.
+    Create a pie chart to show relational proportions between data.
 
-    Pie and doughnut charts are excellent at showing the relational
-    proportions between data.
+    This function generates a pie chart, which is used to display the
+    proportional relationships among data points. The `agg` parameter allows
+    for aggregation of data when grouping by `hue`.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options (dict, optional):
-            Options related to the dataset object (i.e. options
-            concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (Optional[str]): Column name in `data` to use for the y-axis values.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when grouping
+            data. Defaults to "mean".
+        dataset_options (Optional[dict]): Options for customizing the dataset's
+            appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the pie chart.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    if y:
-        data = _create_chart_data_agg(
-            data=data,
-            kind="pie",
-            x=x,
-            y=y,
-            agg=agg,
-            dataset_options=dataset_options,
-        )
-
-    else:
-        data = _create_chart_data_count(
-            data=data, x=x, dataset_options=dataset_options
-        )
-
-    options = _create_chart_options(
-        kind="pie", options=options, x=x, y=y, hue=None, agg=agg
-    )
-
-    return Chart(
-        data=data, kind="pie", options=options, colorscheme=colorscheme
+    data_func = _create_chart_data_agg if y else _create_chart_data_count
+    return _create_chart(
+        data_func=data_func,
+        data_func_kwargs={
+            "data": data,
+            "kind": "pie",
+            "x": x,
+            "y": y,
+            "agg": agg,
+        },
+        kind="pie",
+        options_func_kwargs={"x": x, "y": y, "hue": None, "agg": agg},
+        dataset_options=dataset_options,
+        options=options,
+        colorscheme=colorscheme,
+        zoom=False,  # Pie charts typically do not support zoom
     )
 
 
 def polarplot(
     data: pd.DataFrame,
     x: str,
-    y: str = None,
-    agg: str = "mean",
-    dataset_options: Union[dict, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    y: Optional[str] = None,
+    agg: Union[str, Callable] = "mean",
+    dataset_options: Optional[dict] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
 ) -> Chart:
     """
-    Plot a polar area chart.
+    Create a polar area chart to show relational proportions with equal angles.
 
-    Polar area charts are similar to pie charts, but each segment has the
-    same angle - the radius of the segment differs depending on the value.
+    This function generates a polar area chart, which is used to display the
+    proportional relationships among data points, with each segment having
+    the same angle but varying in radius.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        agg (str, optional): The aggregator used to gather data (ex: 'median'
-            or 'mean'). Defaults to None.
-
-        dataset_options (dict, optional): Options related to the dataset
-            object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (Optional[str]): Column name in `data` to use for the y-axis values.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        agg (Union[str, Callable]): Aggregation function to apply when grouping
+            data. Defaults to "mean".
+        dataset_options (Optional[dict]): Options for customizing the dataset's
+            appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the polar area chart.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    if y:
-        data = _create_chart_data_agg(
-            data=data,
-            kind="polarArea",
-            x=x,
-            y=y,
-            agg=agg,
-            dataset_options=dataset_options,
-        )
-
-    else:
-        data = _create_chart_data_count(
-            data=data, x=x, dataset_options=dataset_options
-        )
-
-    options = _create_chart_options(
-        kind="polarArea", options=options, x=x, y=y, hue=None, agg=agg
-    )
-
-    return Chart(
-        data=data, kind="polarArea", options=options, colorscheme=colorscheme
+    data_func = _create_chart_data_agg if y else _create_chart_data_count
+    return _create_chart(
+        data_func=data_func,
+        data_func_kwargs={
+            "data": data,
+            "kind": "polarArea",
+            "x": x,
+            "y": y,
+            "agg": agg,
+        },
+        kind="polarArea",
+        options_func_kwargs={"x": x, "y": y, "hue": None, "agg": agg},
+        dataset_options=dataset_options,
+        options=options,
+        colorscheme=colorscheme,
+        zoom=False,  # Polar area charts typically do not support zoom
     )
 
 
@@ -620,63 +501,49 @@ def scatterplot(
     data: pd.DataFrame,
     x: str,
     y: str,
-    hue: Union[str, None] = None,
+    hue: Optional[str] = None,
     dataset_options: Union[dict, list, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
 ) -> Chart:
     """
-    Plot a scatter chart.
+    Create a scatter chart to show the relationship between two variables.
 
-    Scatter charts are based on basic line charts with the x axis changed
-    to a linear axis.
+    This function generates a scatterplot, which displays individual data
+    points based on two variables, with the option to differentiate points by
+    a third variable using the `hue` parameter.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        hue (str, optional): Grouping variable that will produce points with
-            different colors. Defaults to None.
-
-        dataset_options ([dict, list], optional): Options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (str): Column name in `data` to use for the y-axis values.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        dataset_options (Union[dict, list, None]): Options for customizing the
+            dataset's appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it is
-            created. Defaults to True.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the scatterplot.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_agg(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_agg,
+        data_func_kwargs={
+            "data": data,
+            "kind": "scatter",
+            "x": x,
+            "y": y,
+            "hue": hue,
+        },
         kind="scatter",
-        x=x,
-        y=y,
-        hue=hue,
+        options_func_kwargs={"x": x, "y": y, "hue": hue},
         dataset_options=dataset_options,
-    )
-
-    options = _create_chart_options(
-        kind="scatter", options=options, x=x, y=y, hue=hue
-    )
-
-    return Chart(
-        data=data,
-        kind="scatter",
         options=options,
         colorscheme=colorscheme,
         zoom=zoom,
@@ -688,71 +555,52 @@ def bubbleplot(
     x: str,
     y: str,
     r: str,
-    hue: Union[str, None] = None,
+    hue: Optional[str] = None,
     dataset_options: Union[dict, list, None] = None,
-    options: Union[dict, None] = None,
-    colorscheme: Union[str, None] = None,
+    options: Optional[dict] = None,
+    colorscheme: Optional[str] = None,
     zoom: bool = True,
 ) -> Chart:
     """
-    Plot a bubble chart.
+    Create a bubble chart to display three-dimensional data.
 
-    A bubble chart is used to display three-dimension data.
-
-    The location of the bubble is determined by the first two dimensions
-    and the corresponding horizontal and vertical axes.
-
-    The third dimension is represented by the radius of the individual
-    bubbles.
+    This function generates a bubble chart, which is used to display
+    three-dimensional data. The location of the bubble is determined by the
+    first two dimensions, and the size (radius) of the bubble is determined by
+    the third dimension.
 
     Args:
-        data (pd.DataFrame): The dataframe used to draw the chart.
-
-        x (str): Column of the dataframe used as datapoints for x Axis.
-
-        y (str): Column of the dataframe used as datapoints for y Axis.
-
-        r (str, optional): Column of the dataframe used as radius for bubbles.
-
-        hue (str, optional): Grouping variable that will produce points with
-            different colors. Defaults to None.
-
-        dataset_options ([dict, list], optional): Options related to the
-            dataset object (i.e. options concerning your data). Defaults to {}.
-
-        options (dict, optional): Options to configure the chart. This
-            dictionary corresponds to the "options" argument of Chart.js.
+        data (pd.DataFrame): The dataframe containing the data to plot.
+        x (str): Column name in `data` to use for the x-axis values.
+        y (str): Column name in `data` to use for the y-axis values.
+        r (str): Column name in `data` to use for the radius of the bubbles.
+        hue (Optional[str]): Column name in `data` to use for color grouping.
             Defaults to None.
-
-        colorscheme (str, optional): Colorscheme to use when drawing the chart.
+        dataset_options (Union[dict, list, None]): Options for customizing the
+            dataset's appearance. Defaults to None.
+        options (Optional[dict]): Chart.js options for configuring the chart's
+            appearance and behavior. Defaults to None.
+        colorscheme (Optional[str]): The colorscheme to apply to the chart.
             Defaults to None.
-
-        zoom (bool, optional): Allow the user to zoom on the Chart once it is
-            created. Defaults to True.
+        zoom (bool): Whether to enable zoom functionality on the chart.
+            Defaults to True.
 
     Returns:
-        ipychart.Chart: A chart which display the data using ipychart.
+        Chart: An ipychart.Chart object representing the bubble chart.
     """
-    if dataset_options is None:
-        dataset_options = {}
-
-    data = _create_chart_data_agg(
-        data=data,
+    return _create_chart(
+        data_func=_create_chart_data_agg,
+        data_func_kwargs={
+            "data": data,
+            "kind": "bubble",
+            "x": x,
+            "y": y,
+            "r": r,
+            "hue": hue,
+        },
         kind="bubble",
-        x=x,
-        y=y,
-        r=r,
-        hue=hue,
+        options_func_kwargs={"x": x, "y": y, "hue": hue},
         dataset_options=dataset_options,
-    )
-
-    options = _create_chart_options(
-        kind="bubble", options=options, x=x, y=y, hue=hue
-    )
-
-    return Chart(
-        data=data,
-        kind="bubble",
         options=options,
         colorscheme=colorscheme,
         zoom=zoom,
