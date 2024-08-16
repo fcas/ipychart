@@ -5,10 +5,10 @@ from typing import Union
 import ipywidgets as widgets
 import numpy as np
 from ipywidgets.embed import dependency_state, embed_data, embed_minimal_html
+from pydash import has, merge, set_
 from traitlets import Bool, Dict, Unicode, default
 
 from ._version import __version__
-from .utils.dict_utils import has, merge, set_
 from .utils.exceptions import (
     InvalidChartColorschemeError,
     InvalidChartDataError,
