@@ -2,7 +2,8 @@ from typing import Union
 
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
-from pydash import merge, set_
+
+from .dict_utils import merge, set_
 
 
 def _create_chart_options(
@@ -70,7 +71,7 @@ def _create_chart_options(
             "x": {"title": {"display": True, "text": x}},
             "y": {"title": {"display": True, "text": y + agg_label}},
         }
-        default_options = set_(default_options, "scales", scales_opt)
+        default_options = set(default_options, "scales", scales_opt)
     else:
         legend_opt = {"display": True}
         default_options = set_(default_options, "plugins.legend", legend_opt)
