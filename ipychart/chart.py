@@ -213,12 +213,24 @@ class Chart(widgets.DOMWidget):
                         message=MSG_FORMAT.format("data['datasets']"),
                         data=dataset["data"],
                     )
-                if not all(
-                    k in p for k in ("x", "y", "r") for p in dataset["data"]
-                ):
-                    raise InvalidChartDataError(
-                        message=MSG_FORMAT.format("data"), data=dataset["data"]
-                    )
+                if self._kind == "bubble":
+                    if not all(
+                        k in p
+                        for k in ("x", "y", "r")
+                        for p in dataset["data"]
+                    ):
+                        raise InvalidChartDataError(
+                            message=MSG_FORMAT.format("data"),
+                            data=dataset["data"],
+                        )
+                else:
+                    if not all(
+                        k in p for k in ("x", "y") for p in dataset["data"]
+                    ):
+                        raise InvalidChartDataError(
+                            message=MSG_FORMAT.format("data"),
+                            data=dataset["data"],
+                        )
 
             if "datalabels" in dataset and not isinstance(
                 dataset["datalabels"], dict
@@ -247,9 +259,7 @@ class Chart(widgets.DOMWidget):
                 type.
         """
         if self._kind not in KINDS:
-            raise InvalidChartKindError(
-                message=MSG_KIND, kind=self._kind
-            )
+            raise InvalidChartKindError(message=MSG_KIND, kind=self._kind)
 
     def _validate_options_argument(self):
         """
