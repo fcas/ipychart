@@ -55,29 +55,41 @@ export class ChartView extends DOMWidgetView {
         _.forEach(data.datasets, (dataset, i) => {
             // If datalabels options are not provided, hide datalabels by default in each dataset.
             // If datalabels options are provided, set automatic coloring based on colorscheme or
-            // dataset color when borderwidth is != 0
+            // dataset color when borderwidth is != 0.
+            // If datalabels options are provided, set default options for anchor and align keys.
 
             if (!_.has(dataset, 'datalabels')) {
-                _.set(dataset, 'datalabels', { display: false });
-            } else if (_.has(options, ['plugins', 'colorschemes', 'scheme'])) {
-                const color = _.get(
-                    (Chart as any).colorschemes,
-                    options.plugins.colorschemes.scheme
-                )[i];
-                if (_.has(dataset.datalabels, 'borderWidth')) {
+                _.set(dataset, 'datalabels', {
+                    display: false,
+                });
+            } else {
+                if (!_.has(dataset.datalabels, 'anchor')) {
+                    _.set(dataset.datalabels, 'anchor', 'start');
+                }
+                if (!_.has(dataset.datalabels, 'align')) {
+                    _.set(dataset.datalabels, 'align', 'start');
+                }
+
+                if (_.has(options, ['plugins', 'colorschemes', 'scheme'])) {
+                    const color = _.get(
+                        (Chart as any).colorschemes,
+                        options.plugins.colorschemes.scheme
+                    )[i];
+                    if (_.has(dataset.datalabels, 'borderWidth')) {
+                        if (!_.has(dataset.datalabels, 'backgroundColor')) {
+                            _.set(dataset.datalabels, 'backgroundColor', color);
+                        }
+                        if (!_.has(dataset.datalabels, 'borderColor')) {
+                            _.set(dataset.datalabels, 'borderColor', color);
+                        }
+                    }
+                } else {
                     if (!_.has(dataset.datalabels, 'backgroundColor')) {
-                        _.set(dataset.datalabels, 'backgroundColor', color);
+                        _.set(dataset.datalabels, 'backgroundColor', dataset.backgroundColor);
                     }
                     if (!_.has(dataset.datalabels, 'borderColor')) {
-                        _.set(dataset.datalabels, 'borderColor', color);
+                        _.set(dataset.datalabels, 'borderColor', dataset.borderColor);
                     }
-                }
-            } else {
-                if (!_.has(dataset.datalabels, 'backgroundColor')) {
-                    _.set(dataset.datalabels, 'backgroundColor', dataset.backgroundColor);
-                }
-                if (!_.has(dataset.datalabels, 'borderColor')) {
-                    _.set(dataset.datalabels, 'borderColor', dataset.borderColor);
                 }
             }
         });
