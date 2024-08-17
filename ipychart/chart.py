@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import random
 from typing import Any, Union
 
@@ -678,7 +679,20 @@ class Chart(widgets.DOMWidget):
 
         Args:
             path (str): The file path where the exported image will be saved.
+
+        Raises:
+            FileNotFoundError: If the specified directory does not exist.
+            ValueError: If the path is not valid for saving the file.
         """
+        directory = os.path.dirname(path)
+        if not os.path.exists(directory):
+            raise FileNotFoundError(
+                f"The directory '{directory}' does not exist."
+            )
+
+        if os.path.isdir(path):
+            raise ValueError(f"The path '{path}' is a directory, not a file.")
+
         self._image_file_path = path
         self._to_image_sync = True
 
