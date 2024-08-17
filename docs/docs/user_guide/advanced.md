@@ -151,8 +151,9 @@ chart = Chart(
 
 ## Export & embedding
 
-Ipychart offers three ways to export a created Chart. These ways correspond to three methods of the *Chart* class: 
+Ipychart offers four ways to export a created Chart. These ways correspond to four methods of the *Chart* class: 
 
 - `to_html(path)`: This function embeds the chart widget into an HTML file dumped at the inputted path location.
+- `to_image(path)`: This function creates an image of the chart widget at the inputted path location.
 - `get_html_template()`: This function returns a string containing HTML code to embed the Chart.
 - `get_python_template()`: This function returns the Python code to run in order to reproduce exactly the same chart.
