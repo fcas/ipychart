@@ -1,12 +1,13 @@
+import base64
 import json
 import random
-from typing import Union
+from typing import Any, Union
 
 import ipywidgets as widgets
 import numpy as np
 from ipywidgets.embed import dependency_state, embed_data, embed_minimal_html
 from pydash import has, merge, set_
-from traitlets import Bool, Dict, Unicode, default
+from traitlets import Bool, Dict, Unicode, default, observe
 
 from ._version import __version__
 from .utils.exceptions import (
@@ -80,6 +81,8 @@ class Chart(widgets.DOMWidget):
     _kind_sync = Unicode().tag(sync=True)
     _colorscheme_sync = Unicode(allow_none=True).tag(sync=True)
     _zoom_sync = Bool().tag(sync=True)
+    _to_image_sync = Bool().tag(sync=True)
+    _image_data_sync = Unicode().tag(sync=True)
 
     def __init__(
         self,
@@ -96,6 +99,7 @@ class Chart(widgets.DOMWidget):
         self._options = options if options else {}
         self._colorscheme = colorscheme
         self._zoom = zoom
+        self._image_file_path = None
 
         # Check inputs and sync to JS
         self._refresh_chart()
@@ -159,6 +163,21 @@ class Chart(widgets.DOMWidget):
         self._validate_current_arguments()
         self._set_default_inputs()
         self._set_synced_attributes()
+
+    def _set_synced_attributes(self):
+        """
+        Update JavaScript-synchronized variables based on chart attributes.
+
+        This method ensures that the attributes of the chart are synchronized
+        with their corresponding JavaScript counterparts. Whenever these
+        "_sync" variables are updated, their new values are automatically
+        propagated to the JavaScript side of the implementation.
+        """
+        self._options_sync = self._options
+        self._data_sync = self._data
+        self._kind_sync = self._kind
+        self._colorscheme_sync = self._colorscheme
+        self._zoom_sync = self._zoom
 
     def _validate_current_arguments(self):
         """
@@ -317,21 +336,6 @@ class Chart(widgets.DOMWidget):
             raise InvalidChartZoomError(
                 message=MSG_FORMAT.format("zoom"), zoom=self._zoom
             )
-
-    def _set_synced_attributes(self):
-        """
-        Update JavaScript-synchronized variables based on chart attributes.
-
-        This method ensures that the attributes of the chart are synchronized
-        with their corresponding JavaScript counterparts. Whenever these
-        "_sync" variables are updated, their new values are automatically
-        propagated to the JavaScript side of the implementation.
-        """
-        self._options_sync = self._options
-        self._data_sync = self._data
-        self._kind_sync = self._kind
-        self._colorscheme_sync = self._colorscheme
-        self._zoom_sync = self._zoom
 
     def _set_default_inputs(self):
         """
@@ -667,3 +671,52 @@ class Chart(widgets.DOMWidget):
         python_template += ")"
 
         return python_template
+
+    def to_image(self, path: str) -> None:
+        """
+        Export the chart as an image by saving it to the specified file path.
+
+        Args:
+            path (str): The file path where the exported image will be saved.
+        """
+        self._image_file_path = path
+        self._to_image_sync = True
+
+    @observe("_image_data_sync")
+    def _on_image_data_changed(self, change: dict[str, Any]) -> None:
+        """
+        Handle updates to the image data sent from the frontend.
+
+        This method is automatically called when the `_image_data_sync`
+        variable is  updated on the frontend. It checks if there is a valid
+        file path and new image data, and if so, saves the image data to the
+        specified file.
+
+        Args:
+            change (dict): A dictionary containing information about the change
+                event. The 'new' key contains the updated image data.
+        """
+        if self._image_file_path and change["new"]:
+            self._save_image(change["new"])
+
+    def _save_image(self, image_data: str) -> None:
+        """
+        Save the base64-encoded image data to a file.
+
+        This method decodes the base64-encoded image data and writes it to the
+        file specified by `_image_file_path`. After saving the file, it resets
+        the internal state variables to be ready for the next operation.
+
+        Args:
+            image_data (str): The base64-encoded image data.
+        """
+        if image_data.startswith("data:image/png;base64,"):
+            image_data = image_data[len("data:image/png;base64,") :]
+
+        image_data = base64.b64decode(image_data)
+
+        with open(self._image_file_path, "wb") as image_file:
+            image_file.write(image_data)
+
+        self._image_file_path = None
+        self._image_data_sync = None

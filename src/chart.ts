@@ -252,6 +252,7 @@ export class ChartView extends DOMWidgetView {
             this.model.on('change:_kind_sync', this.kind_changed, this);
             this.model.on('change:_colorscheme_sync', this.colorscheme_changed, this);
             this.model.on('change:_zoom_sync', this.zoom_changed, this);
+            this.model.on('change:_to_image_sync', this.to_image_changed, this);
 
             // JavaScript -> Python update
             this.input.onchange = this.input_changed.bind(this);
@@ -291,8 +292,21 @@ export class ChartView extends DOMWidgetView {
         this.render();
     }
     zoom_changed(): void {
-        this.input.zoom = this.model.get('_zoom');
+        this.input.zoom = this.model.get('_zoom_sync');
         this.render();
+    }
+    to_image_changed(): void {
+        const toImage = this.model.get('_to_image_sync');
+        if (toImage && this.chart) {
+            const image = this.chart.toBase64Image();
+
+            this.model.set('_image_data_sync', image);
+            this.model.save_changes();
+
+            this.model.set('_to_image_sync', false);
+            this.model.set('_image_data_sync', '');
+            this.model.save_changes();
+        }
     }
 
     input_changed(): void {
