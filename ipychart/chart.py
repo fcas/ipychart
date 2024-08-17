@@ -733,4 +733,4 @@ class Chart(widgets.DOMWidget):
             image_file.write(image_data)
 
         self._image_file_path = None
-        self._image_data_sync = None
+        self._image_data_sync = ""
