@@ -46,8 +46,8 @@ dataset = {
 When the `'borderRadius'` argument is set, ipychart will automatically fill the `'borderColor'` and `'backgroundColor'` arguments (if they are not already set by the user) to match the chart colors. Therefore, you can quickly format the datalabels so that they appear harmoniously on the chart:
 
 ```py
-datalabels_arguments = {'display': True, 'borderWidth': 1,
-                        'align': 'top', 'borderRadius': 5, 'color': '#fff'}
+datalabels_arguments = {'display': True, 'borderWidth': 1, 'anchor': 'end', 
+                        'align': 'end', 'borderRadius': 5, 'color': '#fff'}
 
 dataset = {
   'labels': ['Label 1', 'Label 2', 'Label 3'],
