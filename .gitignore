@@ -30,3 +30,6 @@ ipychart/static/
 .vscode/
 
 docs/source/_static/
+
+**/test-results
+**/playwright-report
