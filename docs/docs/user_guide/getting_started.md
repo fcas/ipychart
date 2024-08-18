@@ -57,12 +57,20 @@ Concretely, we can do that very easily in the following way:
 
 ``` py
 dataset = {
-  'labels': ['Data 1', 'Data 2', 'Data 3', 'Data 4', 
-             'Data 5', 'Data 6', 'Data 7', 'Data 8'],
-  'datasets': [{'data': [14, 22, 36, 48, 60, 90, 28, 12]}]
+    "labels": [
+        "Data 1",
+        "Data 2",
+        "Data 3",
+        "Data 4",
+        "Data 5",
+        "Data 6",
+        "Data 7",
+        "Data 8",
+    ],
+    "datasets": [{"data": [14, 22, 36, 48, 60, 90, 28, 12]}],
 }
 
-mychart = Chart(data=dataset, kind='bar')
+mychart = Chart(data=dataset, kind="bar")
 mychart
 ```
 The chart is displayed directly as an output from the notebook cell. It looks like this:

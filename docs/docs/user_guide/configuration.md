@@ -37,32 +37,42 @@ Here is an example of what you can do to with the title options (not exhaustive)
 
 ``` py
 dataset = {
-  'labels': [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 2000, 2050], 
-  'datasets': [
-    {'data': [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478], 
-    'label': "Africa"}, 
-    {'data': [282, 350, 411, 502, 635, 809, 947, 1402, 3700, 5267], 
-    'label': "Asia"}, 
-    {'data': [168, 170, 178, 190, 203, 276, 408, 547, 675, 734], 
-    'label': "Europe"}, 
-    {'data': [40, 20, 10, 16, 24, 38, 74, 167, 508, 784], 
-    'label': "Latin America"}, 
-    {'data': [6, 3, 2, 2, 7, 26, 82, 172, 312, 433], 
-    'label': "North America"}
-  ]
+    "labels": [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 2000, 2050],
+    "datasets": [
+        {
+            "data": [86, 114, 106, 106, 107, 111, 133, 221, 783, 2478],
+            "label": "Africa",
+        },
+        {
+            "data": [282, 350, 411, 502, 635, 809, 947, 1402, 3700, 5267],
+            "label": "Asia",
+        },
+        {
+            "data": [168, 170, 178, 190, 203, 276, 408, 547, 675, 734],
+            "label": "Europe",
+        },
+        {
+            "data": [40, 20, 10, 16, 24, 38, 74, 167, 508, 784],
+            "label": "Latin America",
+        },
+        {
+            "data": [6, 3, 2, 2, 7, 26, 82, 172, 312, 433],
+            "label": "North America",
+        },
+    ],
 }
 
 options = {
-  'plugins': {
-    'title': {
-      'display': True, 
-        'text': 'This is a Bar Chart',
-        'font': {'size': 30, 'color': 'black', 'style': 'italic'},
+    "plugins": {
+        "title": {
+            "display": True,
+            "text": "This is a Bar Chart",
+            "font": {"size": 30, "color": "black", "style": "italic"},
+        }
     }
-  }
 }
 
-mychart = Chart(dataset, 'bar', options=options)
+mychart = Chart(dataset, "bar", options=options)
 mychart
 ```
 :::
@@ -140,35 +150,47 @@ Here is an example of what you can do to with the legend options (not exhaustive
 
 ``` py
 dataset = {
-  'labels': [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050], 
-  'datasets': [
-    {'data': [86, 114, 106, 106, 107, 111, 133, 221, 121, 142], 
-    'label': "Africa", 'fill': False}, 
-    {'data': [99, 130, 64, 100, 73, 22, 88, 198, 144, 64], 
-    'label': "Asia", 'fill': False}, 
-    {'data': [168, 170, 178, 190, 203, 200, 164, 100, 72, 85], 
-    'label': "Europe", 'fill': False}, 
-    {'data': [40, 20, 10, 16, 24, 38, 74, 167, 80, 150], 
-    'label': "Latin America", 'fill': False}, 
-    {'data': [56, 95, 44, 112, 215, 35, 95, 74, 64, 78], 
-    'label': "North America", 'fill': False}
-  ]
+    "labels": [1500, 1600, 1700, 1750, 1800, 1850, 1900, 1950, 1999, 2050],
+    "datasets": [
+        {
+            "data": [86, 114, 106, 106, 107, 111, 133, 221, 121, 142],
+            "label": "Africa",
+            "fill": False,
+        },
+        {
+            "data": [99, 130, 64, 100, 73, 22, 88, 198, 144, 64],
+            "label": "Asia",
+            "fill": False,
+        },
+        {
+            "data": [168, 170, 178, 190, 203, 200, 164, 100, 72, 85],
+            "label": "Europe",
+            "fill": False,
+        },
+        {
+            "data": [40, 20, 10, 16, 24, 38, 74, 167, 80, 150],
+            "label": "Latin America",
+            "fill": False,
+        },
+        {
+            "data": [56, 95, 44, 112, 215, 35, 95, 74, 64, 78],
+            "label": "North America",
+            "fill": False,
+        },
+    ],
 }
 
 options = {
-  'plugins': { 
-    'legend': {   
-      'align': 'end',
-      'position': 'right',
-      'labels': {
-        'boxWidth': 80, 
-        'fontSize': 14
-      }
+    "plugins": {
+        "legend": {
+            "align": "end",
+            "position": "right",
+            "labels": {"boxWidth": 80, "fontSize": 14},
+        }
     }
-  }
 }
 
-mychart = Chart(dataset, 'radar', options=options)
+mychart = Chart(dataset, "radar", options=options)
 mychart
 ```
 :::
@@ -304,33 +326,54 @@ Here is an example of what you can do to with the tooltip's options (not exhaust
 
 ``` py
 dataset = {
-  'labels': ['Germany','Spain', 'UK', 'Italy', 'Norway', 'France', 
-             'Poland', 'Portugal', 'Sweden', 'Ireland'],
-  'datasets': [ 
-    {'data': [86, 114, 106, 106, 107, 111, 133, 221, 121, 142],
-    'label': 'First Dataset', 'fill': False, 'type': 'line', 
-              'pointRadius': 7, 'pointHoverRadius': 7},  
-    {'data': [99, 130, 64, 100, 73, 22, 88, 198, 144, 64],
-    'label': 'Second Dataset'}, 
-    {'data': [40, 20, 10, 16, 24, 38, 74, 167, 80, 150],
-    'label': 'Third Dataset'}, 
-    {'data': [56, 95, 44, 112, 215, 35, 95, 74, 64, 78],
-    'label': 'Fourth Dataset'}
-  ]
+    "labels": [
+        "Germany",
+        "Spain",
+        "UK",
+        "Italy",
+        "Norway",
+        "France",
+        "Poland",
+        "Portugal",
+        "Sweden",
+        "Ireland",
+    ],
+    "datasets": [
+        {
+            "data": [86, 114, 106, 106, 107, 111, 133, 221, 121, 142],
+            "label": "First Dataset",
+            "fill": False,
+            "type": "line",
+            "pointRadius": 7,
+            "pointHoverRadius": 7,
+        },
+        {
+            "data": [99, 130, 64, 100, 73, 22, 88, 198, 144, 64],
+            "label": "Second Dataset",
+        },
+        {
+            "data": [40, 20, 10, 16, 24, 38, 74, 167, 80, 150],
+            "label": "Third Dataset",
+        },
+        {
+            "data": [56, 95, 44, 112, 215, 35, 95, 74, 64, 78],
+            "label": "Fourth Dataset",
+        },
+    ],
 }
 
 options = {
-  'plugins': {
-    'tooltip': {
-      'displayColors': False,
-      'titleFont': {'size': 14},
-      'bodyFont': {'size': 14},
-      'enabled': True,
-      'callbacks': {
-        'title': """function(context) {
+    "plugins": {
+        "tooltip": {
+            "displayColors": False,
+            "titleFont": {"size": 14},
+            "bodyFont": {"size": 14},
+            "enabled": True,
+            "callbacks": {
+                "title": """function(context) {
           return "This is a custom tooltip !";
         };""",
-        'label': """function(context) {
+                "label": """function(context) {
           let flags = {
             'Germany': '🇩🇪', 'Spain': '🇪🇸', 'UK': '🇬🇧',
             'Norway': '🇳🇴', 'France': '🇫🇷', 'Poland': '🇵🇱',
@@ -354,13 +397,13 @@ options = {
               context.parsed.y.toString()
             ];
           }
-        };"""
-      }
+        };""",
+            },
+        }
     }
-  }
 }
 
-mychart = Chart(dataset, 'bar', options=options)
+mychart = Chart(dataset, "bar", options=options)
 mychart
 ```
 :::
@@ -412,19 +455,39 @@ Here is an example of what you can do to with the layout padding option (not exh
 
 ``` py
 dataset = {
-  'labels': ['Germany','Spain', 'UK', 'Italy', 'Norway', 'France', 
-             'Poland', 'Portugal', 'Sweden', 'Ireland'],
-  'datasets': [{ 
-    'data': [14, 106, 16, 107, 45, 133, 109, 109, 108, 107],
-    'backgroundColor': 'rgba(75, 192, 192, 0.2)', 'fill': False,
-    'datalabels': {'display': True, 'borderRadius': 4, 'borderWidth': 1, 
-                   'anchor': 'end', 'align': 'end'}
-}]}
+    "labels": [
+        "Germany",
+        "Spain",
+        "UK",
+        "Italy",
+        "Norway",
+        "France",
+        "Poland",
+        "Portugal",
+        "Sweden",
+        "Ireland",
+    ],
+    "datasets": [
+        {
+            "data": [14, 106, 16, 107, 45, 133, 109, 109, 108, 107],
+            "backgroundColor": "rgba(75, 192, 192, 0.2)",
+            "fill": False,
+            "datalabels": {
+                "display": True,
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "anchor": "end",
+                "align": "end",
+            },
+        }
+    ],
+}
 
-options = {'layout': {
-             'padding': {'left': 40, 'right': 40, 'top': 60, 'bottom': 60}}}
+options = {
+    "layout": {"padding": {"left": 40, "right": 40, "top": 60, "bottom": 60}}
+}
 
-mychart = Chart(dataset, 'line', options=options)
+mychart = Chart(dataset, "line", options=options)
 mychart
 ```
 :::
