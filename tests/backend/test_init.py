@@ -11,7 +11,7 @@ from ipychart.utils.exceptions import (
 )
 
 
-def test_chart_initialization(sample_chart, mock_comm):
+def test_chart_init(sample_chart, mock_comm):
     """
     Basic test to check if the Chart is initialized correctly and if any
     communication is detected by the mock_comm object.
@@ -29,7 +29,7 @@ def test_chart_initialization(sample_chart, mock_comm):
         ({"datasets": [{"data": [4, 5, 6]}]}, "line"),
     ],
 )
-def test_chart_init(data, kind):
+def test_chart_init_with_valid_data(data, kind):
     chart = Chart(data=data, kind=kind)
     assert chart.__class__.__name__ == "Chart"
     assert chart.kind == kind
