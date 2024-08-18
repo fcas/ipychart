@@ -31,7 +31,7 @@ For a hands-on experience with ipychart, try it online using the dedicated binde
 To quickly test ipychart in a new Jupyter Notebook environment using Docker, first install Docker. Then, execute the command below:
 
 ```sh
-$ docker run -p 8888:8888 nicohlr/ipychart-demo-notebooks:0.1
+$ docker run -p 8888:8888 nicohlr/ipychart
 ```
 
 Afterwards, navigate to `http://localhost:5000/` in your browser. Authenticate in Jupyter by copying the provided token from your terminal and entering it in the browser.
