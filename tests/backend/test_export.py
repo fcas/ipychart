@@ -1,16 +1,7 @@
 import os
-from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
-
-from ipychart import Chart
-
-
-@pytest.fixture
-def sample_chart():
-    data = {"labels": ["A", "B", "C"], "datasets": [{"data": [1, 2, 3]}]}
-    options = {"title": {"display": True, "text": "Sample Chart"}}
-    return Chart(data=data, kind="bar", options=options)
+from IPython.display import display
 
 
 def test_get_html_template(sample_chart):
@@ -27,6 +18,16 @@ def test_get_python_template(sample_chart):
     assert "data =" in python_code
     assert "options =" in python_code
     assert "Chart(data=data, kind='bar', options=options" in python_code
+
+
+def test_to_image_valid_path(sample_chart, tmpdir, mock_comm):
+    temp_file = tmpdir.join("test.png")
+    
+    sample_chart.to_image(str(temp_file))
+
+    assert len(mock_comm.log_open) == 1
+    assert len(mock_comm.log_send) == 0
+    assert len(mock_comm.log_close) == 0
 
 
 def test_to_image_invalid_directory(sample_chart):

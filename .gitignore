@@ -13,7 +13,6 @@ js/dist/
 */*.tgz
 package/
 *.old*
-*test.*
 js/temp.*
 **/yarn.lock
 **/.yarn

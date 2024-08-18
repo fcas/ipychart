@@ -1,4 +1,5 @@
 import pytest
+from IPython.display import display
 
 from ipychart import Chart
 from ipychart.utils.exceptions import (
@@ -9,6 +10,17 @@ from ipychart.utils.exceptions import (
     InvalidChartZoomError,
 )
 
+
+def test_chart_initialization(sample_chart, mock_comm):
+    """
+    Basic test to check if the Chart is initialized correctly and if any
+    communication is detected by the mock_comm object.
+    """
+    display(sample_chart)
+
+    assert len(mock_comm.log_open) == 1
+    assert len(mock_comm.log_send) == 0
+    assert len(mock_comm.log_close) == 0
 
 @pytest.mark.parametrize(
     "data,kind",

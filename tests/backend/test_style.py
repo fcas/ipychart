@@ -3,16 +3,6 @@ import pytest
 from ipychart import Chart
 
 
-@pytest.fixture
-def bar_chart():
-    return Chart(data={"datasets": [{"data": [1, 2, 3]}]}, kind="bar")
-
-
-@pytest.fixture
-def line_chart():
-    return Chart(data={"datasets": [{"data": [1, 2, 3]}]}, kind="line")
-
-
 def test_colorscheme_overwrite_default_style():
     chart = Chart(
         data={"datasets": [{"data": [1, 2, 3]}]},
@@ -27,15 +17,15 @@ def test_colorscheme_overwrite_default_style():
     assert "pointBorderColor" not in chart.data["datasets"][0]
 
 
-def test_default_style_one_bar_dataset(bar_chart):
-    ds = bar_chart.data["datasets"][0]
+def test_default_style_one_bar_dataset(sample_chart):
+    ds = sample_chart.data["datasets"][0]
     assert "backgroundColor" in ds
     assert "borderColor" in ds
     assert "borderWidth" in ds
 
 
-def test_default_style_one_line_dataset(line_chart):
-    ds = line_chart.data["datasets"][0]
+def test_default_style_one_line_dataset(sample_chart):
+    ds = sample_chart.data["datasets"][0]
     assert "backgroundColor" in ds
     assert "borderColor" in ds
     assert "borderWidth" in ds
