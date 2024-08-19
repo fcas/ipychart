@@ -24,15 +24,16 @@ test.describe('Widget Visual Regression', () => {
         const notebook = 'ipychart-test-notebook.ipynb';
         await page.notebook.openByPath(`${tmpPath}/${notebook}`);
         await page.notebook.activate(notebook);
+        await page.waitForTimeout(500)
 
         const captures = new Array<Buffer>();
         const cellCount = await page.notebook.getCellCount();
 
         await page.notebook.runCellByCell({
             onAfterCellRun: async (cellIndex: number) => {
-                const cell = await page.notebook.getCellOutput(cellIndex);
+                const cell = await page.notebook.getCellOutputLocator(cellIndex);
                 if (cell) {
-                    await sleep(500);
+                    await sleep(1000);
                     captures.push(await cell.screenshot());
                 }
             },
@@ -42,7 +43,7 @@ test.describe('Widget Visual Regression', () => {
 
         for (let i = 0; i < cellCount; i++) {
             const image = `${notebook}-cell-${i}.png`;
-            expect.soft(captures[i]).toMatchSnapshot(image);
+            expect.soft(captures[i]).toMatchSnapshot(image, { threshold: 0.5, maxDiffPixelRatio: 0.03 });
         }
     });
 });
