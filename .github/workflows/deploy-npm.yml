@@ -6,17 +6,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        node-version: '17.4.0'
-        registry-url: 'https://registry.npmjs.org'
+        python-version: '3.x'
+    - name: Install jlpm
+      run: |
+        python -m pip install --upgrade pip
+        pip install jupyterlab
     - name: Install dependencies
-      run: cd src && npm install
+      run: |
+        jlpm install
     - name: Publish
-      run: cd src && npm publish --access=public
+      run: npm publish --access=public
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_API_TOKEN}}
