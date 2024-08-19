@@ -15,10 +15,8 @@ jobs:
         node-version: '17.4.0'
         registry-url: 'https://registry.npmjs.org'
     - name: Install dependencies
-      run: cd js && npm install
-    - name: Build package
-      run: cd js && npm pack
+      run: cd src && npm install
     - name: Publish
-      run: cd js && npm publish --access=public
+      run: cd src && npm publish --access=public
       env:
         NODE_AUTH_TOKEN: ${{secrets.NPM_API_TOKEN}}
