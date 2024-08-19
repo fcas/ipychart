@@ -34,3 +34,4 @@ docs/source/_static/
 **/test-results
 **/playwright-report
 !/yarn.lock
+!tests/frontend/yarn.lock
