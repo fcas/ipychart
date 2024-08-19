@@ -1,0 +1,36 @@
+name: Run ipychart's frontend tests
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '22.x'
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install jlpm
+      run: |
+        python -m pip install --upgrade pip
+        pip install jupyterlab
+    - name: Install ipychart locally
+      run: |
+        pip install .
+    - name: Install tests dependencies
+      run: |
+        cd tests/frontend/
+        jlpm install
+        jlpm playwright install --with-deps
+    - name: Run tests
+      run: |
+        cd tests/frontend/
+        jlpm test
