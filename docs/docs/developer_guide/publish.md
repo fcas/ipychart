@@ -40,7 +40,7 @@ Publish the Python package to PyPI. For more info on how to proceed, see the [of
 rm -rf dist
 
 # build Python package
-$ python setup.py sdist
-$ python setup.py bdist_wheel --universal
+$ pip install build twine
+$ python -m build
 $ python3 -m twine upload dist/*
 ```
