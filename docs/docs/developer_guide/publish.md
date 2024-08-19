@@ -4,7 +4,7 @@
 
 Set the **same** version number in all the following files.  
 
-+ `ipychart/js/package.json`
++ `ipychart/src/package.json`
 + `ipychart/_version.py`
 
 ::: warning
@@ -17,7 +17,7 @@ Build the Javascript files and publish the node package to [npmjs.org](https://w
 
 ```bash
 # build Javascript extension
-$ cd js
+$ cd src
 $ npm install
 
 # test run to see what you will publish
