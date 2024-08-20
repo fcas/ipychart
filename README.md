@@ -5,8 +5,12 @@
 </p>
 
 <p align="center">
-    <img alt="GitHub" src="https://img.shields.io/github/license/nicohlr/ipychart">
-    <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/nicohlr/ipychart">
+    <a href="https://github.com/nicohlr/ipychart/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/nicohlr/ipychart">
+    </a>
+    <a href="https://pypi.org/project/ipychart/">
+        <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/nicohlr/ipychart">
+    </a>
     <a href="https://mybinder.org/v2/gh/nicohlr/ipychart/master?labpath=examples">
         <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
     </a>
