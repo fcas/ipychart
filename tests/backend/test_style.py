@@ -17,15 +17,15 @@ def test_colorscheme_overwrite_default_style():
     assert "pointBorderColor" not in chart.data["datasets"][0]
 
 
-def test_default_style_one_bar_dataset(sample_chart):
-    ds = sample_chart.data["datasets"][0]
+def test_default_style_one_bar_dataset(sample_bar_chart):
+    ds = sample_bar_chart.data["datasets"][0]
     assert "backgroundColor" in ds
     assert "borderColor" in ds
     assert "borderWidth" in ds
 
 
-def test_default_style_one_line_dataset(sample_chart):
-    ds = sample_chart.data["datasets"][0]
+def test_default_style_one_line_dataset(sample_line_chart):
+    ds = sample_line_chart.data["datasets"][0]
     assert "backgroundColor" in ds
     assert "borderColor" in ds
     assert "borderWidth" in ds

@@ -57,8 +57,10 @@ def mock_comm():
 
 
 @pytest.fixture
-def sample_chart():
-    """Fixture to create a sample chart for testing."""
-    data = {"labels": ["A", "B", "C"], "datasets": [{"data": [1, 2, 3]}]}
-    options = {"title": {"display": True, "text": "Sample Chart"}}
-    return Chart(data=data, kind="bar", options=options)
+def sample_bar_chart():
+    return Chart(data={"datasets": [{"data": [1, 2, 3]}]}, kind="bar")
+
+
+@pytest.fixture
+def sample_line_chart():
+    return Chart(data={"datasets": [{"data": [1, 2, 3]}]}, kind="line")
