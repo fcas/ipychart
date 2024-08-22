@@ -2,9 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { test } from '@jupyterlab/galata';
-
-import { expect } from '@playwright/test';
-
+import { expect, Locator } from '@playwright/test';
 import * as path from 'path';
 
 async function sleep(time: number) {
@@ -12,48 +10,40 @@ async function sleep(time: number) {
 }
 
 test.describe('Widget Visual Regression', () => {
-    let captures: Buffer[] = [];
-    let cellCount: number | undefined;
-    const notebook = 'ipychart-test-notebook.ipynb';
-
     test.beforeEach(async ({ page, tmpPath }) => {
         await page.contents.uploadDirectory(path.resolve(__dirname, './notebooks'), tmpPath);
         await page.filebrowser.openDirectory(tmpPath);
     });
 
-    test('Run notebook ipychart-test-notebook.ipynb and capture cell outputs', async ({ page, tmpPath }) => {
+    test('Run notebook ipychart-test-notebook.ipynb and capture cell outputs', async ({
+        page,
+        tmpPath,
+    }) => {
+        const notebook = 'ipychart-test-notebook.ipynb';
         await page.notebook.openByPath(`${tmpPath}/${notebook}`);
         await page.notebook.activate(notebook);
         await page.waitForTimeout(500);
 
-        cellCount = await page.notebook.getCellCount();
-
-        captures = new Array<Buffer>();
-
         await page.notebook.runCellByCell({
             onAfterCellRun: async (cellIndex: number) => {
+                await page.waitForTimeout(1500)
                 const cell = await page.notebook.getCellOutputLocator(cellIndex);
+
                 if (cell) {
-                    await sleep(1000);
-                    captures.push(await cell.screenshot({ animations: 'disabled' }));
+                    const box = await cell.boundingBox();
+                    if (box) {
+                        await cell.waitFor({ state: 'visible' });
+                        const image = `${notebook}-cell-${cellIndex}.png`;
+                        await expect(cell).toHaveScreenshot(image, {
+                            threshold: 0.5,
+                            maxDiffPixelRatio: 0.03,
+                            animations: "disabled",
+                        });
+                    }
                 }
             },
         });
 
         await page.notebook.save();
     });
-
-    // Adjust the maximum number of cells as needed
-    for (let i = 0; i < 25; i++) {
-        test(`Compare output of cell ${i}`, async () => {
-            if (typeof cellCount === 'undefined' || i >= cellCount) {
-                test.skip();
-            } else {
-                const image = `${notebook}-cell-${i}.png`;
-                expect
-                    .soft(captures[i])
-                    .toMatchSnapshot(image, { threshold: 0.5, maxDiffPixelRatio: 0.03 });
-            }
-        });
-    }
 });
