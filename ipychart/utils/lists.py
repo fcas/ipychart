@@ -15,6 +15,7 @@ OPTIONS = [
     "scales",
     "layout",
     "animation",
+    "animations",
     "hover",
     "plugins",
     "legendCallback",
