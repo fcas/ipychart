@@ -213,20 +213,32 @@ class Chart(widgets.DOMWidget):
             InvalidChartDataError: If the `data` argument is missing required
                 elements or is incorrectly structured.
         """
-        if "datasets" not in self._data or not isinstance(
-            self._data["datasets"], list
-        ):
-            raise InvalidChartDataError(
-                message=MSG_FORMAT.format("data"), data=self._data
-            )
-        if not len(self._data["datasets"]) or not all(
-            "data" in ds for ds in self._data["datasets"]
-        ):
+
+        if not isinstance(self._data, dict) or self._data is None:
             raise InvalidChartDataError(
                 message=MSG_FORMAT.format("data"), data=self._data
             )
 
-        for dataset in self._data["datasets"]:
+        datasets = self._data.get("datasets", None)
+        if not datasets or not isinstance(datasets, list):
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data['datasets']"), data=self._data
+            )
+
+        for dataset in datasets:
+            if (
+                not isinstance(dataset, dict)
+                or "data" not in dataset
+                or not isinstance(dataset["data"], list)
+            ):
+                raise InvalidChartDataError(
+                    message=MSG_FORMAT.format("data['datasets']"), data=dataset
+                )
+
+            dataset["data"] = [
+                item for item in dataset["data"] if item is not None
+            ]
+
             if self._kind in ["bubble", "scatter"]:
                 if not all(isinstance(x, dict) for x in dataset["data"]):
                     raise InvalidChartDataError(
@@ -260,11 +272,10 @@ class Chart(widgets.DOMWidget):
                     data=dataset["datalabels"],
                 )
 
-        if "labels" in self._data and not isinstance(
-            self._data["labels"], list
-        ):
+        labels = self._data.get("labels", None)
+        if labels is not None and not isinstance(labels, list):
             raise InvalidChartDataError(
-                message=MSG_FORMAT.format("data"), data=self._data["labels"]
+                message=MSG_FORMAT.format("data['labels']"), data=labels
             )
 
     def _validate_kind_argument(self):
