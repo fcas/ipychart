@@ -11,6 +11,7 @@ module.exports = (ctx) => ({
         ['meta', { name: 'msapplication-TileImage', content: '/mstile-150x150.png' }],
         ['meta', { name: 'msapplication-TileColor', content: '#2b5797' }],
         ['meta', { name: 'theme-color', content: '#ffffff' }],
+        ['meta', { name: 'google-site-verification', content: '6adHIzAVfLnUkGR5FwaEWZAyHGUHaTmI8W3nejcniAQ' }],
     ],
     plugins: [['flexsearch', { maxSuggestions: 8 }]],
 
