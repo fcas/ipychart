@@ -11,6 +11,7 @@ from pydash import has, merge, set_
 from traitlets import Bool, Dict, Unicode, default, observe
 
 from ._version import __version__
+from .utils.constants import COLORSCHEMES, KINDS, OPTIONS
 from .utils.exceptions import (
     InvalidChartColorschemeError,
     InvalidChartDataError,
@@ -18,7 +19,6 @@ from .utils.exceptions import (
     InvalidChartOptionsError,
     InvalidChartZoomError,
 )
-from .utils.lists import COLORSCHEMES, KINDS, OPTIONS
 from .utils.messages import MSG_COLORSCHEME, MSG_FORMAT, MSG_KIND
 
 

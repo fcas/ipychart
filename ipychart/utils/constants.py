@@ -18,6 +18,7 @@ OPTIONS = [
     "animations",
     "hover",
     "plugins",
+    "parsing",
     "legendCallback",
     "indexAxis",
     "aspectRatio",
