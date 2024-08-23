@@ -15,8 +15,8 @@ def test_get_html_template(sample_bar_chart):
 def test_get_python_template(sample_bar_chart):
     python_code = sample_bar_chart.get_python_template()
 
-    assert "data =" in python_code
-    assert "options =" in python_code
+    assert f"data = {sample_bar_chart.data}" in python_code
+    assert f"options = {sample_bar_chart.options}" in python_code
     assert "Chart(data=data, kind='bar', options=options" in python_code
 
 
