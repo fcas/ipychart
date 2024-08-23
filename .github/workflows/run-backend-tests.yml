@@ -1,8 +1,9 @@
-name: Deploy ipychart to NPM
+name: Run ipychart's backend tests
 on:
   push:
     branches:
       - master
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -14,15 +15,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install jlpm
-      run: |
-        python -m pip install --upgrade pip
-        pip install jupyterlab
     - name: Install dependencies
       run: |
-        jlpm install
-    - name: Authenticate to NPM
+        python -m pip install --upgrade pip
+        pip install pytest ipykernel
+    - name: Install ipychart locally
       run: |
-        echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_API_TOKEN }}" > ~/.npmrc
-    - name: Publish
-      run: npm publish --access=public
+        pip install .
+    - name: Run tests
+      run: |
+        pytest -v --tb=no --no-header --no-summary --disable-warnings

@@ -5,9 +5,13 @@
 </p>
 
 <p align="center">
-    <img alt="GitHub" src="https://img.shields.io/github/license/nicohlr/ipychart">
-    <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/nicohlr/ipychart">
-    <a href="https://mybinder.org/v2/gh/nicohlr/ipychart-demo-notebooks/master">
+    <a href="https://github.com/nicohlr/ipychart/blob/master/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/nicohlr/ipychart">
+    </a>
+    <a href="https://pypi.org/project/ipychart/">
+        <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/nicohlr/ipychart">
+    </a>
+    <a href="https://mybinder.org/v2/gh/nicohlr/ipychart/master?labpath=examples">
         <img alt="Binder" src="https://mybinder.org/badge_logo.svg">
     </a>
     <a href="https://github.com/chartjs/awesome">
@@ -57,10 +61,9 @@ For a development installation:
 
     $ git clone https://github.com/nicohlr/ipychart.git
     $ cd ipychart
-    $ conda install jupyterlab nodejs -c conda-forge
-    $ cd ipychart/js
-    $ npm install yarn
-    $ npm install 
+    $ conda install jupyterlab -c conda-forge
+    $ cd ipychart/src
+    $ jlpm install 
     $ cd .. 
     $ pip install -e .
     $ jupyter nbextension install --py --symlink --sys-prefix ipychart
@@ -71,9 +74,9 @@ References
 
 - [**Chart.js**](https://www.chartjs.org/)
 - [**Ipywidgets**](https://ipywidgets.readthedocs.io/en/latest/index.html)
-- [**Ipywidgets cookiecutter template**](https://github.com/jupyter-widgets/widget-cookiecutter)
+- [**Ipywidgets cookiecutter template**](https://github.com/jupyter-widgets/widget-ts-cookiecutter)
 - [**Chart.js Datalabels**](https://github.com/chartjs/chartjs-plugin-datalabels)
-- [**Chart.js Colorschemes**](https://github.com/nagix/chartjs-plugin-colorschemes)
+- [**Chart.js Zoom**](https://github.com/chartjs/chartjs-plugin-zoom)
 - [**Vuepress**](https://vuepress.vuejs.org/)
 - [**GitHub Pages**](https://pages.github.com/)
 

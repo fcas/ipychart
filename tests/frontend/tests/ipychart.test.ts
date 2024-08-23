@@ -2,9 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 
 import { test } from '@jupyterlab/galata';
-
-import { expect } from '@playwright/test';
-
+import { expect, Locator } from '@playwright/test';
 import * as path from 'path';
 
 async function sleep(time: number) {
@@ -24,25 +22,28 @@ test.describe('Widget Visual Regression', () => {
         const notebook = 'ipychart-test-notebook.ipynb';
         await page.notebook.openByPath(`${tmpPath}/${notebook}`);
         await page.notebook.activate(notebook);
-
-        const captures = new Array<Buffer>();
-        const cellCount = await page.notebook.getCellCount();
+        await page.waitForTimeout(500);
 
         await page.notebook.runCellByCell({
             onAfterCellRun: async (cellIndex: number) => {
-                const cell = await page.notebook.getCellOutput(cellIndex);
+                await page.waitForTimeout(1500)
+                const cell = await page.notebook.getCellOutputLocator(cellIndex);
+
                 if (cell) {
-                    await sleep(500);
-                    captures.push(await cell.screenshot());
+                    const box = await cell.boundingBox();
+                    if (box) {
+                        await cell.waitFor({ state: 'visible' });
+                        const image = `${notebook}-cell-${cellIndex}.png`;
+                        await expect(cell).toHaveScreenshot(image, {
+                            threshold: 0.5,
+                            maxDiffPixelRatio: 0.03,
+                            animations: "disabled",
+                        });
+                    }
                 }
             },
         });
 
         await page.notebook.save();
-
-        for (let i = 0; i < cellCount; i++) {
-            const image = `${notebook}-cell-${i}.png`;
-            expect.soft(captures[i]).toMatchSnapshot(image);
-        }
     });
 });

@@ -11,12 +11,12 @@ from ipychart.utils.exceptions import (
 )
 
 
-def test_chart_init(sample_chart, mock_comm):
+def test_chart_init(sample_bar_chart, mock_comm):
     """
     Basic test to check if the Chart is initialized correctly and if any
     communication is detected by the mock_comm object.
     """
-    display(sample_chart)
+    display(sample_bar_chart)
 
     assert len(mock_comm.log_open) == 1
     assert len(mock_comm.log_send) == 0

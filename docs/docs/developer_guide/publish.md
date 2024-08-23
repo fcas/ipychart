@@ -18,7 +18,7 @@ Build the Javascript files and publish the node package to [npmjs.org](https://w
 ```bash
 # build Javascript extension
 $ cd src
-$ npm install
+$ jlpm install
 
 # test run to see what you will publish
 # npm pack

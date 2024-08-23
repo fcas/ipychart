@@ -81,10 +81,6 @@ ensured-targets = [
     "ipychart/nbextension/index.js",
     "ipychart/labextension/package.json",
 ]
-skip-if-exists = [
-    "ipychart/nbextension/index.js",
-    "ipychart/labextension/package.json",
-]
 dependencies = [
     "hatch-jupyter-builder>=0.8.3",
 ]

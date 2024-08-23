@@ -26,3 +26,5 @@ If ipychart visuals change, you can re-generate reference images by running:
 ```bash
 jlpm test:update
 ```
+
+A Dockerfile is also provided to generate snapshots on a linux environment.

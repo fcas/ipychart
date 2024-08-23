@@ -24,25 +24,23 @@ The API of ipychart closely mirrors that of Chart.js, aiming to provide all the 
 
 The `ipychart` package's source code is hosted on GitHub: [github.com/nicohlr/ipychart](https://github.com/nicohlr/ipychart).
 
-Additionally, a repository containing notebooks with diverse ipychart use-case examples is available on GitHub. This repository, named `ipychart-demo-notebooks`, showcases various code snippets for creating different types of charts. Access it here: [github.com/nicohlr/ipychart-demo-notebooks](https://github.com/nicohlr/ipychart-demo-notebooks).
+For a hands-on experience with ipychart, try it online using the dedicated binder linked to the ipychart-demo-notebooks repository: [**try ipychart online**](https://mybinder.org/v2/gh/nicohlr/ipychart/master?labpath=examples).
 
-For a hands-on experience with ipychart, try it online using the dedicated binder linked to the ipychart-demo-notebooks repository: [**try ipychart online**](https://mybinder.org/v2/gh/nicohlr/ipychart-demo-notebooks/master).
-
-To quickly test ipychart in a new Jupyter Notebook environment using Docker, first install Docker. Then, execute the command below:
+You can also quickly try ipychart in a Jupyter Notebook environment using Docker and the [set of demo notebooks from ipychart's official repository](https://github.com/nicohlr/ipychart/tree/master/examples). To do so, install Docker and execute the command below:
 
 ```sh
 $ docker run -p 8888:8888 nicohlr/ipychart
 ```
 
-Afterwards, navigate to `http://localhost:5000/` in your browser. Authenticate in Jupyter by copying the provided token from your terminal and entering it in the browser.
+Afterwards, navigate to `http://localhost:8888/` in your browser. Authenticate in Jupyter by copying the provided token from your terminal and entering it in the browser.
 
 <p style="font-size:1.65rem;font-weight:600;line-height:1.25!important;margin-bottom:0;padding-top:4.6rem;padding-bottom:.3rem;margin-top:-3.1rem;border-bottom:1px solid #eaecef;">References</p>
 
 - [**Chart.js**](https://www.chartjs.org/)
 - [**Ipywidgets**](https://ipywidgets.readthedocs.io/en/latest/index.html)
-- [**Ipywidgets cookiecutter template**](https://github.com/jupyter-widgets/widget-cookiecutter)
+- [**Ipywidgets cookiecutter template**](https://github.com/jupyter-widgets/widget-ts-cookiecutter)
 - [**Chart.js Datalabels**](https://github.com/chartjs/chartjs-plugin-datalabels)
-- [**Chart.js Colorschemes**](https://github.com/nagix/chartjs-plugin-colorschemes)
+- [**Chart.js Zoom**](https://github.com/chartjs/chartjs-plugin-zoom)
 - [**Vuepress**](https://vuepress.vuejs.org/)
 - [**GitHub Pages**](https://pages.github.com/)
 
