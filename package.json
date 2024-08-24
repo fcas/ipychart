@@ -1,6 +1,6 @@
 {
     "name": "ipychart",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "A Jupyter - Chart.js bridge enabling interactive data visualization with Python.",
     "author": "Nicolas Houlier",
     "main": "lib/index.js",
