@@ -21,6 +21,9 @@ jobs:
     - name: Install dependencies
       run: |
         jlpm install
+    - name: Build project
+      run: |
+        jlpm build
     - name: Authenticate to NPM
       run: |
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_API_TOKEN }}" > ~/.npmrc
