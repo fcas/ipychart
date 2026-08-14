@@ -4,7 +4,7 @@
 
 Set the **same** version number in all the following files.  
 
-+ `ipychart/js/package.json`
++ `ipychart/src/package.json`
 + `ipychart/_version.py`
 
 ::: warning
@@ -17,8 +17,9 @@ Build the Javascript files and publish the node package to [npmjs.org](https://w
 
 ```bash
 # build Javascript extension
-$ cd js
-$ npm install
+$ cd src
+$ jlpm install
+$ jlpm build
 
 # test run to see what you will publish
 # npm pack
@@ -40,7 +41,7 @@ Publish the Python package to PyPI. For more info on how to proceed, see the [of
 rm -rf dist
 
 # build Python package
-$ python setup.py sdist
-$ python setup.py bdist_wheel --universal
+$ pip install build twine
+$ python -m build
 $ python3 -m twine upload dist/*
 ```

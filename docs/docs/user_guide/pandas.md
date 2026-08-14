@@ -167,15 +167,23 @@ Allow the user to zoom on the Chart once it is created. Defaults to True.
 **Example:**
 
 ```py
-datalabels_arguments = {'display': True, 'borderWidth': 1, 'anchor': 'end', 
-                        'align': 'end', 'borderRadius': 5, 'color': '#fff'}
+datalabels_arguments = {
+    "display": True,
+    "borderWidth": 1,
+    "anchor": "end",
+    "align": "end",
+    "borderRadius": 5,
+    "color": "#fff",
+}
 
-ipc.lineplot(data=titanic,
-             x='Pclass',
-             y='Age',
-             hue='Sex', 
-             dataset_options={'fill': False, 'datalabels': datalabels_arguments}, 
-             colorscheme='office.Parallax6')
+ipc.lineplot(
+    data=titanic,
+    x="Pclass",
+    y="Age",
+    hue="Sex",
+    dataset_options={"fill": False, "datalabels": datalabels_arguments},
+    colorscheme="office.Parallax6",
+)
 ```
 
 <pandas-line/>
@@ -221,11 +229,13 @@ Allow the user to zoom on the Chart once it is created. Defaults to True.
 **Example:**
 
 ```py
-ipc.barplot(data=titanic,
-            x='Pclass',
-            y='Fare',
-            hue='Sex',
-            colorscheme='office.Parallax6')
+ipc.barplot(
+    data=titanic,
+    x="Pclass",
+    y="Fare",
+    hue="Sex",
+    colorscheme="office.Parallax6",
+)
 ```
 
 <pandas-bar/>
@@ -265,10 +275,12 @@ Colorscheme to use when drawing the chart. List of available colorscheme: link.
 **Example:**
 
 ```py
-ipc.radarplot(data=titanic,
-              x='Title',
-              y='Fare',
-              colorscheme='office.Yellow6')
+ipc.radarplot(
+    data=titanic,
+    x='Title',
+    y='Fare',
+    colorscheme='office.Yellow6'
+)
 ```
 
 <pandas-radar/>
@@ -322,10 +334,12 @@ Colorscheme to use when drawing the chart. List of available colorscheme: link.
 **Example:**
 
 ```py
-ipc.polarplot(data=titanic,
-              x='Title',
-              y='Fare',
-              colorscheme='brewer.SetThree5')
+ipc.polarplot(
+    data=titanic,
+    x="Title",
+    y="Fare",
+    colorscheme="brewer.SetThree5"
+)
 ```
 
 <pandas-polararea/>
@@ -365,11 +379,13 @@ Allow the user to zoom on the Chart once it is created. Defaults to True.
 **Example:**
 
 ```py
-ipc.scatterplot(data=titanic,
-                x='Age',
-                y='Fare',
-                hue='Survived', 
-                colorscheme='tableau.ColorBlind10')
+ipc.scatterplot(
+    data=titanic,
+    x="Age",
+    y="Fare",
+    hue="Survived",
+    colorscheme="tableau.ColorBlind10",
+)
 ```
 
 <pandas-scatter/>
@@ -412,12 +428,14 @@ Allow the user to zoom on the Chart once it is created. Defaults to True.
 **Example:**
 
 ```py
-ipc.bubbleplot(data=titanic,
-               x='Age',
-               y='Fare',
-               r='Pclass',
-               hue='Survived', 
-               colorscheme='office.Headlines6')
+ipc.bubbleplot(
+    data=titanic,
+    x="Age",
+    y="Fare",
+    r="Pclass",
+    hue="Survived",
+    colorscheme="office.Headlines6",
+)
 ```
 
 <pandas-bubble/>

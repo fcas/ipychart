@@ -8,16 +8,21 @@ In practice, the datalabels are controlled from the 'datalabels' key (which take
 
 ```py
 dataset = {
-  'labels': ['Label 1', 'Label 2', 'Label 3'],
-  'datasets': [{'data': [221, 783, 2478], 'label': "Africa"},
-               {'data': [1402, 3700, 5267], 'label': "Asia",
-                'datalabels':  {'display': True}}, # Toggle display datalabels
-               {'data': [547, 675, 734], 'label': "Europe"},
-               {'data': [167, 508, 784], 'label': "Latin America"},
-               {'data': [172, 312, 433], 'label': "North America"}]
+    "labels": ["Label 1", "Label 2", "Label 3"],
+    "datasets": [
+        {"data": [221, 783, 2478], "label": "Africa"},
+        {
+            "data": [1402, 3700, 5267],
+            "label": "Asia",
+            "datalabels": {"display": True},
+        },  # Toggle display datalabels
+        {"data": [547, 675, 734], "label": "Europe"},
+        {"data": [167, 508, 784], "label": "Latin America"},
+        {"data": [172, 312, 433], "label": "North America"},
+    ],
 }
 
-mychart = Chart(dataset, 'bar', colorscheme='tableau.Tableau10')
+mychart = Chart(dataset, "bar", colorscheme="tableau.Tableau10")
 mychart
 ```
 
@@ -46,24 +51,47 @@ dataset = {
 When the `'borderRadius'` argument is set, ipychart will automatically fill the `'borderColor'` and `'backgroundColor'` arguments (if they are not already set by the user) to match the chart colors. Therefore, you can quickly format the datalabels so that they appear harmoniously on the chart:
 
 ```py
-datalabels_arguments = {'display': True, 'borderWidth': 1, 'anchor': 'end', 
-                        'align': 'end', 'borderRadius': 5, 'color': '#fff'}
-
-dataset = {
-  'labels': ['Label 1', 'Label 2', 'Label 3'],
-  'datasets': [{'data': [221, 783, 2478], 'label': "Africa", 
-                'datalabels':  datalabels_arguments},  
-                {'data': [1402, 3700, 5267], 'label': "Asia", 
-                'datalabels':  datalabels_arguments}, 
-                {'data': [547, 675, 734], 'label': "Europe", 
-                'datalabels':  datalabels_arguments},
-                {'data': [167, 508, 784], 'label': "Latin America", 
-                'datalabels':  datalabels_arguments},
-                {'data': [172, 312, 433], 'label': "North America", 
-                'datalabels':  datalabels_arguments}]
+datalabels_arguments = {
+    "display": True,
+    "borderWidth": 1,
+    "anchor": "end",
+    "align": "end",
+    "borderRadius": 5,
+    "color": "#fff",
 }
 
-mychart = Chart(dataset, 'bar', colorscheme='tableau.Tableau10')
+dataset = {
+    "labels": ["Label 1", "Label 2", "Label 3"],
+    "datasets": [
+        {
+            "data": [221, 783, 2478],
+            "label": "Africa",
+            "datalabels": datalabels_arguments,
+        },
+        {
+            "data": [1402, 3700, 5267],
+            "label": "Asia",
+            "datalabels": datalabels_arguments,
+        },
+        {
+            "data": [547, 675, 734],
+            "label": "Europe",
+            "datalabels": datalabels_arguments,
+        },
+        {
+            "data": [167, 508, 784],
+            "label": "Latin America",
+            "datalabels": datalabels_arguments,
+        },
+        {
+            "data": [172, 312, 433],
+            "label": "North America",
+            "datalabels": datalabels_arguments,
+        },
+    ],
+}
+
+mychart = Chart(dataset, "bar", colorscheme="tableau.Tableau10")
 mychart
 ```
 
@@ -76,22 +104,34 @@ As ipychart is an [ipywidget](https://ipywidgets.readthedocs.io/en/latest/), you
 ```py
 import ipywidgets as wd
 
-dataset1 = {'labels': ['D' + str(i) for i in range(10)],
-            'datasets': [{'data': [random.randint(0, 100) for _ in range(10)]}]}
-dataset2 = {'labels': ['D' + str(i) for i in range(10)],
-            'datasets': [{'data': [random.randint(0, 100) for _ in range(10)]}]}
-dataset3 = {'labels': ['D' + str(i) for i in range(10)],
-            'datasets': [{'data': [random.randint(0, 100) for _ in range(10)]}]}
-dataset4 = {'labels': ['D' + str(i) for i in range(10)],
-            'datasets': [{'data': [random.randint(0, 100) for _ in range(10)]}]}
+dataset1 = {
+    "labels": ["D" + str(i) for i in range(10)],
+    "datasets": [{"data": [random.randint(0, 100) for _ in range(10)]}],
+}
+dataset2 = {
+    "labels": ["D" + str(i) for i in range(10)],
+    "datasets": [{"data": [random.randint(0, 100) for _ in range(10)]}],
+}
+dataset3 = {
+    "labels": ["D" + str(i) for i in range(10)],
+    "datasets": [{"data": [random.randint(0, 100) for _ in range(10)]}],
+}
+dataset4 = {
+    "labels": ["D" + str(i) for i in range(10)],
+    "datasets": [{"data": [random.randint(0, 100) for _ in range(10)]}],
+}
 
-mychart1 = Chart(dataset1, 'line', colorscheme='tableau.Tableau10')
-mychart2 = Chart(dataset2, 'bar', colorscheme='brewer.Accent5')
-mychart3 = Chart(dataset3, 'bar', colorscheme='brewer.PuOr3')
-mychart4 = Chart(dataset4, 'line', colorscheme='office.Celestial6')
+mychart1 = Chart(dataset1, "line", colorscheme="tableau.Tableau10")
+mychart2 = Chart(dataset2, "bar", colorscheme="brewer.Accent5")
+mychart3 = Chart(dataset3, "bar", colorscheme="brewer.PuOr3")
+mychart4 = Chart(dataset4, "line", colorscheme="office.Celestial6")
 
-grid = wd.TwoByTwoLayout(top_left=mychart1, top_right=mychart2, 
-                         bottom_left=mychart3, bottom_right=mychart4)
+grid = wd.TwoByTwoLayout(
+    top_left=mychart1,
+    top_right=mychart2,
+    bottom_left=mychart3,
+    bottom_right=mychart4,
+)
 grid
 ```
 
@@ -151,8 +191,9 @@ chart = Chart(
 
 ## Export & embedding
 
-Ipychart offers three ways to export a created Chart. These ways correspond to three methods of the *Chart* class: 
+Ipychart offers four ways to export a created Chart. These ways correspond to four methods of the *Chart* class: 
 
 - `to_html(path)`: This function embeds the chart widget into an HTML file dumped at the inputted path location.
+- `to_image(path)`: This function creates an image of the chart widget at the inputted path location.
 - `get_html_template()`: This function returns a string containing HTML code to embed the Chart.
 - `get_python_template()`: This function returns the Python code to run in order to reproduce exactly the same chart.

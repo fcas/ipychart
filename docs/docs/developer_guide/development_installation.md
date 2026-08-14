@@ -6,19 +6,19 @@ For a development installation, start by cloning the project from GitHub:
 $ git clone https://github.com/nicohlr/ipychart.git
 ```
 
-Then, install nodejs:
+Then, install jupyterlab:
 
 ``` bash
 $ cd ipychart
-$ conda install jupyterlab nodejs -c conda-forge
+$ conda install jupyterlab -c conda-forge
 ```
 
 After that, you'll have to install the Javascript ipychart package ...
 
 ``` bash
 # from the root of the project
-$ cd ipychart/js
-$ npm install 
+$ cd ipychart/src
+$ jlpm install 
 ```
 
 ... followed by the ipychart Python package:

@@ -1,4 +1,4 @@
-from ._version import version_info, __version__
+from ._version import __version__
 
 from .chart import Chart
 from .plots import *
@@ -17,10 +17,12 @@ def _jupyter_labextension_paths():
         from `src` directory into <jupyter path>/labextensions/<dest> directory
         during widget installation
     """
-    return [{
-        'src': 'labextension',
-        'dest': 'ipychart',
-    }]
+    return [
+        {
+            "src": "labextension",
+            "dest": "ipychart",
+        }
+    ]
 
 
 def _jupyter_nbextension_paths():
@@ -40,9 +42,11 @@ def _jupyter_nbextension_paths():
     require: Path to importable AMD Javascript module inside the
         <jupyter path>/nbextensions/<dest> directory
     """
-    return [{
-        'section': 'notebook',
-        'src': 'nbextension',
-        'dest': 'ipychart',
-        'require': 'ipychart/extension'
-    }]
+    return [
+        {
+            "section": "notebook",
+            "src": "nbextension",
+            "dest": "ipychart",
+            "require": "ipychart/extension",
+        }
+    ]

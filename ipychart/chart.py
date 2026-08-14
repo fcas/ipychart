@@ -1,39 +1,27 @@
+import base64
 import json
+import os
 import random
+from typing import Any, Union
 
-import numpy as np
 import ipywidgets as widgets
-
-from typing import Union
-from pydash import has, set_, merge
-from traitlets import Unicode, default, Dict, Bool
-from ipywidgets.embed import embed_minimal_html, dependency_state, embed_data
+import numpy as np
+from ipywidgets.embed import dependency_state, embed_data, embed_minimal_html
+from pydash import has, merge, set_
+from traitlets import Bool, Dict, Unicode, default, observe
 
 from ._version import __version__
-
-from .values import KINDS, COLORSCHEMES
-
-MSG_FORMAT = (
-    "Wrong input format for {} argument. See "
-    "https://nicohlr.github.io/ipychart/user_guide/usage.html "
-    "for more details"
+from .utils.constants import COLORSCHEMES, KINDS, OPTIONS
+from .utils.exceptions import (
+    InvalidChartColorschemeError,
+    InvalidChartDataError,
+    InvalidChartKindError,
+    InvalidChartOptionsError,
+    InvalidChartZoomError,
 )
-
-MSG_KIND = (
-    "Chart kind must be one of : line, bar, radar, doughnut,"
-    "polarArea, bubble, pie, scatter. See "
-    "https://nicohlr.github.io/ipychart/user_guide/charts.html "
-    "for more details"
-)
-
-MSG_COLORSCHEME = (
-    "Chart colorscheme must be one of the exposed colorschemes. See "
-    "https://nagix.github.io/chartjs-plugin-colorschemes/colorchart.html "
-    "for the list of available colorschemes."
-)
+from .utils.messages import MSG_COLORSCHEME, MSG_FORMAT, MSG_KIND
 
 
-@widgets.register
 class Chart(widgets.DOMWidget):
     """
     The power of Chart.js with Python.
@@ -61,8 +49,11 @@ class Chart(widgets.DOMWidget):
             Defaults to True.
 
     Raises:
-        ValueError: This exception is raised when the Chart reveive an
-            unexpected argument.
+        InvalidChartDataError: Raised when the chart data is invalid.
+        InvalidChartKindError: Raised when the chart kind is not supported.
+        InvalidChartOptionsError: Raised when chart options are invalid.
+        InvalidChartColorschemeError: Raised when the colorscheme is invalid.
+        InvalidChartZoomError: Raised when the zoom argument is not a boolean.
 
     Examples:
         Here's a basic example of how to use the `Chart` class:
@@ -91,13 +82,15 @@ class Chart(widgets.DOMWidget):
     _kind_sync = Unicode().tag(sync=True)
     _colorscheme_sync = Unicode(allow_none=True).tag(sync=True)
     _zoom_sync = Bool().tag(sync=True)
+    _to_image_sync = Bool().tag(sync=True)
+    _image_data_sync = Unicode().tag(sync=True)
 
     def __init__(
         self,
         data: dict,
         kind: str,
         options: Union[dict, None] = None,
-        colorscheme: list[str, None] = None,
+        colorscheme: Union[str, None] = None,
         zoom: bool = True,
     ):
         super().__init__()
@@ -107,6 +100,7 @@ class Chart(widgets.DOMWidget):
         self._options = options if options else {}
         self._colorscheme = colorscheme
         self._zoom = zoom
+        self._image_file_path = None
 
         # Check inputs and sync to JS
         self._refresh_chart()
@@ -171,83 +165,6 @@ class Chart(widgets.DOMWidget):
         self._set_default_inputs()
         self._set_synced_attributes()
 
-    def _validate_current_arguments(self):
-        """
-        Validate chart arguments for Chart.js format compatibility.
-
-        Ensures chart arguments adhere to the structure required by Chart.js.
-        Raises an exception if any argument is invalid, halting execution.
-
-        For details on the expected structure, see:
-
-        https://nicohlr.github.io/ipychart/user_guide/usage.html
-        """
-        # Validate data argument
-        if "datasets" not in self._data:
-            raise ValueError(MSG_FORMAT.format("data"))
-
-        datasets = self._data["datasets"]
-        if not isinstance(datasets, list):
-            raise ValueError(MSG_FORMAT.format("data"))
-        if not len(datasets):
-            raise ValueError(MSG_FORMAT.format("data"))
-        if not ["data" in ds for ds in datasets] == [True] * len(datasets):
-            raise ValueError(MSG_FORMAT.format("data"))
-
-        for dataset in datasets:
-            if "kind" in ["bubble", "scatter"]:
-                if not all(isinstance(x, dict) for x in dataset["data"]):
-                    raise ValueError(MSG_FORMAT.format("data['datasets']"))
-                if not all(
-                    k in p for k in ("x", "y", "r") for p in self._data
-                ):
-                    raise ValueError(MSG_FORMAT.format("data"))
-
-            if "datalabels" in dataset:
-                if not isinstance(dataset["datalabels"], dict):
-                    raise ValueError(MSG_FORMAT.format("data"))
-
-        if "labels" in self._data:
-            if not isinstance(self._data["labels"], list):
-                raise ValueError(MSG_FORMAT.format("data"))
-
-        # Validate kind argument
-        if self._kind not in KINDS:
-            raise ValueError(MSG_KIND)
-
-        # Validate options argument
-        if not isinstance(self._options, dict):
-            raise ValueError(MSG_FORMAT.format("options"))
-
-        # Allowed options
-        all_options = [
-            "legend",
-            "title",
-            "scales",
-            "layout",
-            "animation",
-            "hover",
-            "plugins",
-            "legendCallback",
-            "indexAxis",
-            "aspectRatio",
-            "maintainAspectRatio",
-        ]
-
-        if not set(self._options.keys()).issubset(set(all_options)):
-            raise ValueError(MSG_FORMAT.format("options"))
-
-        # Validate colorscheme argument
-        if (
-            self._colorscheme is not None
-            and self._colorscheme not in COLORSCHEMES
-        ):
-            raise ValueError(MSG_COLORSCHEME)
-
-        # Validate zoom argument
-        if not isinstance(self._zoom, bool):
-            raise ValueError(MSG_FORMAT.format("zoom"))
-
     def _set_synced_attributes(self):
         """
         Update JavaScript-synchronized variables based on chart attributes.
@@ -262,6 +179,175 @@ class Chart(widgets.DOMWidget):
         self._kind_sync = self._kind
         self._colorscheme_sync = self._colorscheme
         self._zoom_sync = self._zoom
+
+    def _validate_current_arguments(self):
+        """
+        Validate chart arguments for Chart.js format compatibility.
+
+        This method ensures that all arguments passed to the chart are valid
+        and conform to the expected structure. It performs individual
+        validation on the `data`, `kind`, `options`, `colorscheme`, and `zoom`
+        arguments.
+
+        For details on the expected structure, see:
+        https://nicohlr.github.io/ipychart/user_guide/usage.html
+
+        Raises:
+            InvalidChartDataError: If any of the arguments are invalid.
+        """
+        self._validate_data_argument()
+        self._validate_kind_argument()
+        self._validate_options_argument()
+        self._validate_colorscheme_argument()
+        self._validate_zoom_argument()
+
+    def _validate_data_argument(self):
+        """
+        Validate the `data` argument for correct structure and content.
+
+        This method checks that the `data` argument contains the required keys
+        and that its contents are correctly formatted for use with Chart.js. It
+        ensures that datasets are lists and contain the necessary data.
+
+        Raises:
+            InvalidChartDataError: If the `data` argument is missing required
+                elements or is incorrectly structured.
+        """
+
+        if not isinstance(self._data, dict) or self._data is None:
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data"), data=self._data
+            )
+
+        datasets = self._data.get("datasets", None)
+        if not datasets or not isinstance(datasets, list):
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data['datasets']"), data=self._data
+            )
+
+        for dataset in datasets:
+            if (
+                not isinstance(dataset, dict)
+                or "data" not in dataset
+                or not isinstance(dataset["data"], list)
+            ):
+                raise InvalidChartDataError(
+                    message=MSG_FORMAT.format("data['datasets']"), data=dataset
+                )
+
+            dataset["data"] = [
+                item for item in dataset["data"] if item is not None
+            ]
+
+            if self._kind in ["bubble", "scatter"]:
+                if not all(isinstance(x, dict) for x in dataset["data"]):
+                    raise InvalidChartDataError(
+                        message=MSG_FORMAT.format("data['datasets']"),
+                        data=dataset["data"],
+                    )
+                if self._kind == "bubble":
+                    if not all(
+                        k in p
+                        for k in ("x", "y", "r")
+                        for p in dataset["data"]
+                    ):
+                        raise InvalidChartDataError(
+                            message=MSG_FORMAT.format("data"),
+                            data=dataset["data"],
+                        )
+                else:
+                    if not all(
+                        k in p for k in ("x", "y") for p in dataset["data"]
+                    ):
+                        raise InvalidChartDataError(
+                            message=MSG_FORMAT.format("data"),
+                            data=dataset["data"],
+                        )
+
+            if "datalabels" in dataset and not isinstance(
+                dataset["datalabels"], dict
+            ):
+                raise InvalidChartDataError(
+                    message=MSG_FORMAT.format("data"),
+                    data=dataset["datalabels"],
+                )
+
+        labels = self._data.get("labels", None)
+        if labels is not None and not isinstance(labels, list):
+            raise InvalidChartDataError(
+                message=MSG_FORMAT.format("data['labels']"), data=labels
+            )
+
+    def _validate_kind_argument(self):
+        """
+        Validate the `kind` argument to ensure it is a supported chart type.
+
+        This method checks that the `kind` argument corresponds to one of the
+        supported chart types defined in the `KINDS` constant.
+
+        Raises:
+            InvalidChartKindError: If the `kind` argument is not a valid chart
+                type.
+        """
+        if self._kind not in KINDS:
+            raise InvalidChartKindError(message=MSG_KIND, kind=self._kind)
+
+    def _validate_options_argument(self):
+        """
+        Validate the `options` argument for correct structure and keys.
+
+        This method ensures that the `options` argument is a dictionary and
+        that it only contains valid configuration options supported by
+        Chart.js.
+
+        Raises:
+            InvalidChartOptionsError: If the `options` argument is not a
+                dictionary or contains unsupported keys.
+        """
+        if not isinstance(self._options, dict):
+            raise InvalidChartOptionsError(
+                message=MSG_FORMAT.format("options"), options=self._options
+            )
+
+        if not set(self._options.keys()).issubset(set(OPTIONS)):
+            raise InvalidChartOptionsError(
+                message=MSG_FORMAT.format("options"), options=self._options
+            )
+
+    def _validate_colorscheme_argument(self):
+        """
+        Validate the `colorscheme` argument to ensure it is an allowed scheme.
+
+        This method checks that the `colorscheme` argument, if provided, is one
+        of the recognized colorschemes defined in the `COLORSCHEMES` constant.
+
+        Raises:
+            InvalidChartColorschemeError: If the `colorscheme` argument is not
+                recognized or valid.
+        """
+        if (
+            self._colorscheme is not None
+            and self._colorscheme not in COLORSCHEMES
+        ):
+            raise InvalidChartColorschemeError(
+                message=MSG_COLORSCHEME,
+                colorscheme=self._colorscheme,
+            )
+
+    def _validate_zoom_argument(self):
+        """
+        Validate the `zoom` argument to ensure it is a boolean value.
+
+        This method checks that the `zoom` argument is a boolean, ensuring that
+        the user input is correct for enabling or disabling zoom on the chart.
+
+        Raises:
+            InvalidChartZoomError: If the `zoom` argument is not a boolean.
+        """
+        if not isinstance(self._zoom, bool):
+            raise InvalidChartZoomError(
+                message=MSG_FORMAT.format("zoom"), zoom=self._zoom
+            )
 
     def _set_default_inputs(self):
         """
@@ -295,21 +381,38 @@ class Chart(widgets.DOMWidget):
         """
         Apply a default style to the chart.
 
-        Provides an aesthetically pleasing chart in ipychart without requiring
-        explicit styling options. For details on styling in ipychart, see:
+        This method sets a default visual style for the chart when no specific
+        styling options are provided by the user. It ensures that the chart is
+        visually appealing by applying colors to datasets based on predefined
+        color schemes and random colors. The method adapts the style based on
+        the number of datasets and the type of chart being used.
 
+        For more details on styling in ipychart, see:
         https://nicohlr.github.io/ipychart/user_guide/charts.html
+
+        Notes:
+            - For charts with a single dataset, a set of unique colors is
+            applied to the data points, ensuring consistency and readability.
+            - For charts with multiple datasets, each dataset is assigned a
+            distinct color from a larger palette, which includes both
+            predefined and random colors.
+            - The method also handles specific styling details like setting the
+            background color, border color, and border width for different
+            types of charts.
+            - If the chart type supports points (e.g., line, radar, scatter,
+            bubble), it also sets the point background and border colors.
+
+        Related Methods:
+            - `_generate_random_colors`: Generates random colors used in the
+            color palette.
+            - `_generate_colors_all`: Combines predefined and random colors
+            into a comprehensive color palette.
+            - `_apply_style_to_single_dataset`: Applies styles specifically for
+            charts with a single dataset.
+            - `_apply_style_to_multiple_datasets`: Applies styles for charts
+            with multiple datasets.
         """
-        random_colors = [
-            "rgba({}, {}, {}, 0.2)".format(
-                *random.sample(
-                    list(np.random.choice(range(256), size=2))
-                    + list(np.random.choice(range(200, 256), size=1)),
-                    3,
-                )
-            )
-            for _ in range(100)
-        ]
+        random_colors = self._generate_random_colors(100)
 
         # Chart.js main colors for one dataset
         colors_unique = [
@@ -318,94 +421,209 @@ class Chart(widgets.DOMWidget):
             "rgba(255, 206, 87, 0.2)",
         ]
 
-        # Chosen colors for the ten fist datasets then random colors
-        colors_all = [
-            "rgba(54, 163, 235, 0.2)",
-            "rgba(254, 119, 124, 0.2)",
-            "rgba(255, 206, 87, 0.2)",
-            "rgba(11, 255, 238, 0.2)",
-            "rgba(153, 102, 255, 0.2)",
-            "rgba(255, 159, 64, 0.2)",
-            "rgba(5, 169, 69, 0.2)",
-            "rgba(230, 120, 199, 0.2)",
-            "rgba(35, 120, 206, 0.2)",
-            "rgba(211, 216, 214, 0.2)",
-        ] + random_colors
+        # Chosen colors for the ten first datasets then random colors
+        colors_all = self._generate_colors_all(colors_unique, random_colors)
 
-        # Accessors for readability
-        bgc = "backgroundColor"
-        bdc = "borderColor"
-        bdw = "borderWidth"
-        pbgc = "pointBackgroundColor"
-        pbdc = "pointBorderColor"
-
-        # Chart types lists
-        bars = ["bar"]
-        lrsb = ["line", "radar", "scatter", "bubble"]
-
-        # Set a mix of color if only one dataset
+        # Apply style to datasets
         if len(self._data["datasets"]) == 1:
-            ds = self._data["datasets"][0]
-            ds_type = ds["type"] if "type" in ds else self._kind
-
-            if bgc not in ds:
-                if ds_type in lrsb:
-                    ds[bgc] = colors_unique[0]
-                elif ds_type in bars:
-                    size = int(len(ds["data"]))
-                    colors = colors_unique * (size + 1)
-                    ds[bgc] = colors[:size]
-                else:
-                    ds[bgc] = colors_all[: len(ds["data"])]
-
-            if bdc not in ds:
-                if ds_type in lrsb:
-                    ds[bdc] = ds[bgc].replace("0.2", "1")
-                else:
-                    ds[bdc] = [c.replace("0.2", "1") for c in ds[bgc]]
-
-            if bdw not in ds:
-                ds[bdw] = 1
-
-            if ds_type in lrsb:
-                if pbgc not in ds:
-                    ds[pbgc] = ds[bgc]
-                if pbdc not in ds:
-                    ds[pbdc] = ds[bdc]
-
-        # Set one color per dataset if more than one dataset
+            self._apply_style_to_single_dataset(colors_unique, colors_all)
         else:
-            for idx, ds in enumerate(self._data["datasets"]):
-                ds_type = ds["type"] if "type" in ds else self._kind
+            self._apply_style_to_multiple_datasets(colors_all)
 
-                if bgc not in ds:
-                    if ds_type in lrsb + bars:
-                        ds[bgc] = colors_all[idx]
-                    else:
-                        ds[bgc] = colors_all[: len(ds["data"])]
+    @staticmethod
+    def _generate_random_colors(num_colors: int) -> list:
+        """
+        Generate a list of random RGBA color strings.
 
-                if bdc not in ds:
-                    if ds_type in lrsb + bars:
-                        ds[bdc] = ds[bgc].replace("0.2", "1")
-                    else:
-                        ds[bdc] = [c.replace("0.2", "1") for c in ds[bgc]]
+        This method creates a specified number of randomly generated RGBA color
+        strings. These colors are used to ensure variety and visual distinction
+        in charts with multiple datasets or data points.
 
-                if bdw not in ds:
-                    ds[bdw] = 1
+        Args:
+            num_colors (int): The number of random colors to generate.
 
-                if ds_type in lrsb:
-                    if pbgc not in ds:
-                        ds[pbgc] = ds[bgc]
-                    if pbdc not in ds:
-                        ds[pbdc] = ds[bdc]
+        Returns:
+            list: A list of RGBA color strings, each in the format
+                "rgba(R, G, B, A)", where R, G, and B are random values between
+                0 and 255, and A is set to 0.2 for transparency.
+
+        Notes:
+            - The method uses a combination of random sampling and NumPy's
+            `choice` function to ensure that the generated colors are varied
+            and vibrant.
+            - This method is primarily used to create a fallback color palette
+            when specific colors are not provided by the user or when the chart
+            has more datasets than predefined colors.
+        """
+        return [
+            "rgba({}, {}, {}, 0.2)".format(
+                *random.sample(
+                    list(np.random.choice(range(256), size=2))
+                    + list(np.random.choice(range(200, 256), size=1)),
+                    3,
+                )
+            )
+            for _ in range(num_colors)
+        ]
+
+    @staticmethod
+    def _generate_colors_all(colors_unique: list, random_colors: list) -> list:
+        """
+        Generate a comprehensive list of colors to be used across all datasets.
+
+        This method combines a predefined list of unique colors with additional
+        randomly generated colors to produce a color palette that can be used
+        for multiple datasets in a chart. This ensures that each dataset can be
+        distinctly colored, even if there are many datasets.
+
+        Args:
+            colors_unique (list): A list of predefined RGBA color strings that
+                are used as the primary colors for the first few datasets.
+            random_colors (list): A list of randomly generated RGBA color
+                strings that are used to extend the color palette beyond the
+                predefined colors.
+
+        Returns:
+            list: A list of RGBA color strings that combines the unique colors
+                with the randomly generated ones, providing enough colors for
+                multiple datasets.
+
+        Notes:
+            - The predefined colors ensure that the most common datasets have
+            consistent and visually appealing colors.
+            - The random colors ensure that there are enough distinct colors
+            available even when the chart contains a large number of datasets.
+        """
+        return (
+            colors_unique
+            + [
+                "rgba(11, 255, 238, 0.2)",
+                "rgba(153, 102, 255, 0.2)",
+                "rgba(255, 159, 64, 0.2)",
+                "rgba(5, 169, 69, 0.2)",
+                "rgba(230, 120, 199, 0.2)",
+                "rgba(35, 120, 206, 0.2)",
+                "rgba(211, 216, 214, 0.2)",
+            ]
+            + random_colors
+        )
+
+    def _apply_style_to_single_dataset(
+        self, colors_unique: list, colors_all: list
+    ):
+        """
+        Apply default styling to a single dataset in the chart.
+
+        This method determines the appropriate colors for the dataset based on
+        the type of chart. It sets the background color, border color, and
+        other style properties such as border width and point colors (for line,
+        radar, scatter, and bubble charts).
+
+        Args:
+            colors_unique (list): A list of unique RGBA color strings used for
+                charts with a single dataset.
+            colors_all (list): A list of RGBA color strings used for charts
+                with multiple data points in a single dataset.
+
+        Notes:
+            - If the dataset already has specific styling defined (e.g.,
+            backgroundColor or borderColor), this method will respect those
+            settings and only fill in the missing styles.
+            - The method handles different chart types, including line, radar,
+            scatter, bubble, and bar charts, applying different logic for each.
+        """
+        ds = self._data["datasets"][0]
+        ds_type = ds.get("type", self._kind)
+
+        bgc = ds.get("backgroundColor", None)
+        if bgc is None:
+            if ds_type in ["line", "radar", "scatter", "bubble"]:
+                ds["backgroundColor"] = colors_unique[0]
+            elif ds_type in ["bar"]:
+                size = int(len(ds["data"]))
+                colors = colors_unique * (size + 1)
+                ds["backgroundColor"] = colors[:size]
+            else:
+                ds["backgroundColor"] = colors_all[: len(ds["data"])]
+
+        ds["borderWidth"] = ds.get("borderWidth", 1)
+
+        if ds_type in ["line", "radar", "scatter", "bubble"]:
+            ds["borderColor"] = ds.get(
+                "borderColor", ds["backgroundColor"].replace("0.2", "1")
+            )
+            ds["pointBackgroundColor"] = ds.get(
+                "pointBackgroundColor", ds["backgroundColor"]
+            )
+            ds["pointBorderColor"] = ds.get(
+                "pointBorderColor", ds["borderColor"]
+            )
+        else:
+            ds["borderColor"] = [
+                c.replace("0.2", "1") for c in ds["backgroundColor"]
+            ]
+
+    def _apply_style_to_multiple_datasets(self, colors_all: list):
+        """
+        Apply default styling to multiple datasets in the chart.
+
+        This method assigns colors and styling attributes to each dataset in
+        the chart when there are multiple datasets. It ensures that each
+        dataset is distinctly colored and that the appropriate styles are
+        applied based on the type of chart.
+
+        Args:
+            colors_all (list): A list of RGBA color strings used to style the
+                datasets. Each dataset will receive a unique color from this
+                list.
+
+        Notes:
+            - The method assigns a background color, border color, and border
+            width for each dataset.
+            - For charts that support points (such as line, radar, scatter, and
+            bubble charts), it also assigns point background and border colors.
+            - The method checks if the dataset already has specific styles set
+            (e.g., backgroundColor, borderColor). If not, it applies the
+            default styles.
+            - The method handles different chart types, including line, radar,
+            scatter, bubble, and bar charts, applying appropriate logic for
+            each.
+        """
+        for idx, ds in enumerate(self._data["datasets"]):
+            ds_type = ds.get("type", self._kind)
+
+            ds["backgroundColor"] = ds.get(
+                "backgroundColor",
+                colors_all[idx]
+                if ds_type in ["line", "radar", "scatter", "bubble", "bar"]
+                else colors_all[: len(ds["data"])],
+            )
+
+            ds["borderColor"] = ds.get(
+                "borderColor",
+                ds["backgroundColor"].replace("0.2", "1")
+                if ds_type in ["line", "radar", "scatter", "bubble", "bar"]
+                else [c.replace("0.2", "1") for c in ds["backgroundColor"]],
+            )
+            ds["borderWidth"] = ds.get("borderWidth", 1)
+
+            if ds_type in ["line", "radar", "scatter", "bubble"]:
+                ds["pointBackgroundColor"] = ds.get(
+                    "pointBackgroundColor", ds["backgroundColor"]
+                )
+                ds["pointBorderColor"] = ds.get(
+                    "pointBorderColor", ds["borderColor"]
+                )
 
     def to_html(self, path):
         """
         Embed the chart widget into an HTML file at the specified path.
 
         For details on embedding an ipywidget, refer to:
-
         https://ipywidgets.readthedocs.io/en/latest/embedding.html
+
+        Args:
+            path (str): Path where the HTML file will be created.
         """
         embed_minimal_html(path, views=[self], state=dependency_state([self]))
 
@@ -465,3 +683,65 @@ class Chart(widgets.DOMWidget):
         python_template += ")"
 
         return python_template
+
+    def to_image(self, path: str) -> None:
+        """
+        Export the chart as an image by saving it to the specified file path.
+
+        Args:
+            path (str): The file path where the exported image will be saved.
+
+        Raises:
+            FileNotFoundError: If the specified directory does not exist.
+            ValueError: If the path is not valid for saving the file.
+        """
+        directory = os.path.dirname(path)
+        if not os.path.exists(directory):
+            raise FileNotFoundError(
+                f"The directory '{directory}' does not exist."
+            )
+
+        if os.path.isdir(path):
+            raise ValueError(f"The path '{path}' is a directory, not a file.")
+
+        self._image_file_path = path
+        self._to_image_sync = True
+
+    @observe("_image_data_sync")
+    def _on_image_data_changed(self, change: dict[str, Any]) -> None:
+        """
+        Handle updates to the image data sent from the frontend.
+
+        This method is automatically called when the `_image_data_sync`
+        variable is  updated on the frontend. It checks if there is a valid
+        file path and new image data, and if so, saves the image data to the
+        specified file.
+
+        Args:
+            change (dict): A dictionary containing information about the change
+                event. The 'new' key contains the updated image data.
+        """
+        if self._image_file_path and change["new"]:
+            self._save_image(change["new"])
+
+    def _save_image(self, image_data: str) -> None:
+        """
+        Save the base64-encoded image data to a file.
+
+        This method decodes the base64-encoded image data and writes it to the
+        file specified by `_image_file_path`. After saving the file, it resets
+        the internal state variables to be ready for the next operation.
+
+        Args:
+            image_data (str): The base64-encoded image data.
+        """
+        if image_data.startswith("data:image/png;base64,"):
+            image_data = image_data[len("data:image/png;base64,") :]
+
+        image_data = base64.b64decode(image_data)
+
+        with open(self._image_file_path, "wb") as image_file:
+            image_file.write(image_data)
+
+        self._image_file_path = None
+        self._image_data_sync = ""

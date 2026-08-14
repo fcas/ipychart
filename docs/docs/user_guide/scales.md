@@ -104,25 +104,42 @@ Here is an example of a scale with labels:
 
 ``` py
 dataset = {
-  'labels': ['Germany','Spain', 'UK', 'Italy', 'Norway', 'France', 'Poland', 
-             'Portugal', 'Sweden', 'Ireland'],
-  'datasets': [{'data': [14, 106, 16, 107, 45, 133, 19, 109, 60, 107]}]}
+    "labels": [
+        "Germany",
+        "Spain",
+        "UK",
+        "Italy",
+        "Norway",
+        "France",
+        "Poland",
+        "Portugal",
+        "Sweden",
+        "Ireland",
+    ],
+    "datasets": [{"data": [14, 106, 16, 107, 45, 133, 19, 109, 60, 107]}],
+}
 
 options = {
-  'scales': {
-    'x': {'title': {
-      'display': True, 
-      'text': 'This is the x Axis', 
-      'font': {'size': 20}}},
-    'y': {'title': {
-      'display': True, 
-      'text': 'This is the y Axis', 
-      'font': {'size': 20}}}
-  }
+    "scales": {
+        "x": {
+            "title": {
+                "display": True,
+                "text": "This is the x Axis",
+                "font": {"size": 20},
+            }
+        },
+        "y": {
+            "title": {
+                "display": True,
+                "text": "This is the y Axis",
+                "font": {"size": 20},
+            }
+        },
+    }
 }
 
 
-mychart = Chart(dataset, 'bar', options=options, colorscheme='office.Median6')
+mychart = Chart(dataset, "bar", options=options, colorscheme="office.Median6")
 mychart
 ```
 :::
@@ -211,29 +228,33 @@ Here is an example of a scale with custom tick's options:
 
 ``` py
 dataset = {
-  'labels': ['Data 1', 'Data 2', 'Data 3', 'Data 4', 'Data 5'],
-  'datasets': [
-    {'data': [500, 114, 106, 420, 107],
-     'label': "Africa"}, 
-    {'data': [282, 350, 411, 350, 220],
-     'label': "Asia"}, 
-    {'data': [168, 170, 250, 380, 480],
-     'label': "Europe"}, 
-    {'data': [450, 270, 10, 100, 24],
-     'label': "Latin America"}, 
-    {'data': [6, 40, 200, 300, 350],
-     'label': "North America"}
-  ]
+    "labels": ["Data 1", "Data 2", "Data 3", "Data 4", "Data 5"],
+    "datasets": [
+        {"data": [500, 114, 106, 420, 107], "label": "Africa"},
+        {"data": [282, 350, 411, 350, 220], "label": "Asia"},
+        {"data": [168, 170, 250, 380, 480], "label": "Europe"},
+        {"data": [450, 270, 10, 100, 24], "label": "Latin America"},
+        {"data": [6, 40, 200, 300, 350], "label": "North America"},
+    ],
 }
 
 options = {
-  'scales': {'x': {'ticks': {'font': {'size': 15, 'style': 'italic'}}},
-             'y': {'ticks': {'font': {'size': 15, 'style': 'italic'}, 
-                             'stepSize': 100, 'minRotation': 45, 'padding': 20}}
-  }
+    "scales": {
+        "x": {"ticks": {"font": {"size": 15, "style": "italic"}}},
+        "y": {
+            "ticks": {
+                "font": {"size": 15, "style": "italic"},
+                "stepSize": 100,
+                "minRotation": 45,
+                "padding": 20,
+            }
+        },
+    }
 }
 
-mychart = Chart(dataset, 'line', options=options, colorscheme='office.Composite6')
+mychart = Chart(
+    dataset, "line", options=options, colorscheme="office.Composite6"
+)
 mychart
 ```
 :::
@@ -334,51 +355,60 @@ Here is an example of a chart with a time scale:
 <br>
 
 ``` py
-data = {"datasets": [
-  {'label': "US",
-   'data': [{'x': "01/01/2019", 'y': 172},
-            {'x': "04/01/2019", 'y': 173},
-            {'x': "08/01/2019", 'y': 174},
-            {'x': "10/01/2019", 'y': 175},
-            {'x': "12/01/2019", 'y': 178},
-            {'x': "04/01/2020", 'y': 182}, 
-            {'x': "10/01/2020", 'y': 192},
-            {'x': "12/01/2020", 'y': 200}],
-   'lineTension': 0.3},
-  {'label': "UK",
-   'data':  [{'x': "01/01/2019", 'y': 175},
-             {'x': "04/01/2019", 'y': 177},
-             {'x': "08/01/2019", 'y': 182},
-             {'x': "10/01/2019", 'y': 172},
-             {'x': "12/01/2019", 'y': 184},
-             {'x': "04/01/2020", 'y': 192}, 
-             {'x': "10/01/2020", 'y': 188},
-             {'x': "12/01/2020", 'y': 210}],
-   'lineTension': 0.3}]
+data = {
+    "datasets": [
+        {
+            "label": "US",
+            "data": [
+                {"x": "01/01/2019", "y": 172},
+                {"x": "04/01/2019", "y": 173},
+                {"x": "08/01/2019", "y": 174},
+                {"x": "10/01/2019", "y": 175},
+                {"x": "12/01/2019", "y": 178},
+                {"x": "04/01/2020", "y": 182},
+                {"x": "10/01/2020", "y": 192},
+                {"x": "12/01/2020", "y": 200},
+            ],
+            "lineTension": 0.3,
+        },
+        {
+            "label": "UK",
+            "data": [
+                {"x": "01/01/2019", "y": 175},
+                {"x": "04/01/2019", "y": 177},
+                {"x": "08/01/2019", "y": 182},
+                {"x": "10/01/2019", "y": 172},
+                {"x": "12/01/2019", "y": 184},
+                {"x": "04/01/2020", "y": 192},
+                {"x": "10/01/2020", "y": 188},
+                {"x": "12/01/2020", "y": 210},
+            ],
+            "lineTension": 0.3,
+        },
+    ]
 }
 
-options = {'scales': {
-  'x': {      
-    'type': 'time',
-    'time': {
-      'tooltipFormat': 'll',
-      'unit': 'week', # change unit from month to week
-      'round': 'week', # print only first day of week
-      'isoWeekday': True, # monday as first day of week
-      'stepSize': 2,# one tick each 2 weeks
-      # Change display format
-      # see: https://momentjs.com/docs/#/displaying/format/
-      'displayFormats': {'week': 'ddd D MMM YYYY'}
-    }, # one tick each 2 weeks
-      
-    'title': {'display': True, 'text': 'Date'}
-  },
-  'y': {
-    'title': {'display': True, 'text': 'Value'}
-  }
-}}
+options = {
+    "scales": {
+        "x": {
+            "type": "time",
+            "time": {
+                "tooltipFormat": "ll",
+                "unit": "week",  # change unit from month to week
+                "round": "week",  # print only first day of week
+                "isoWeekday": True,  # monday as first day of week
+                "stepSize": 2,  # one tick each 2 weeks
+                # Change display format
+                # see: https://momentjs.com/docs/#/displaying/format/
+                "displayFormats": {"week": "ddd D MMM YYYY"},
+            },  # one tick each 2 weeks
+            "title": {"display": True, "text": "Date"},
+        },
+        "y": {"title": {"display": True, "text": "Value"}},
+    }
+}
 
-mychart = Chart(data, 'line', options, colorscheme='tableau.Tableau10')
+mychart = Chart(data, "line", options, colorscheme="tableau.Tableau10")
 mychart
 ```
 :::
@@ -534,50 +564,56 @@ Here is an example of a radial scale with custom angleLines, grid, pointLabels a
 
 ``` py
 dataset = {
-  'labels': ['Top', 'TopRight', 'BottomRight', 'Bottom', 
-             'BottomLeft', 'TopLeft'],
-  'datasets': [
-    {'data': [140, 106, 160, 107, 45, 27],
-     'label': 'Dataset 1',
-     'borderWidth': 3,
-     'lineTension': 0.3},
-    {'data': [32, 160, 72, 140, 89, 112],
-     'label': 'Dataset 2',
-     'borderWidth': 3,
-     'lineTension': 0.3}]
+    "labels": [
+        "Top",
+        "TopRight",
+        "BottomRight",
+        "Bottom",
+        "BottomLeft",
+        "TopLeft",
+    ],
+    "datasets": [
+        {
+            "data": [140, 106, 160, 107, 45, 27],
+            "label": "Dataset 1",
+            "borderWidth": 3,
+            "lineTension": 0.3,
+        },
+        {
+            "data": [32, 160, 72, 140, 89, 112],
+            "label": "Dataset 2",
+            "borderWidth": 3,
+            "lineTension": 0.3,
+        },
+    ],
 }
 
 options = {
-  'scales': {
-    'r': {
-      'display': True,
-      'color': 'black',
-      'lineWidth': 1.5,
-      'borderDashOffset': 10,
-      'angleLines': {
-        'display': True,
-        'color': 'black',
-        'lineWidth': 1.5,
-        'borderDashOffset': 10
-      },
-      'grid': {
-        'color': 'black',
-        'lineWidth': 1.5,
-        'circular': True
-      },
-      'pointLabels': {
-        'display': True,
-        'font': {'size': 14, 'color': 'black', 'style': 'italic'},
-      },
-      'ticks': {
-        'font': {'size': 18, 'color': 'black'},
-        'stepSize': 30
-      }
+    "scales": {
+        "r": {
+            "display": True,
+            "color": "black",
+            "lineWidth": 1.5,
+            "borderDashOffset": 10,
+            "angleLines": {
+                "display": True,
+                "color": "black",
+                "lineWidth": 1.5,
+                "borderDashOffset": 10,
+            },
+            "grid": {"color": "black", "lineWidth": 1.5, "circular": True},
+            "pointLabels": {
+                "display": True,
+                "font": {"size": 14, "color": "black", "style": "italic"},
+            },
+            "ticks": {"font": {"size": 18, "color": "black"}, "stepSize": 30},
+        }
     }
-  }
 }
 
-mychart = Chart(dataset, 'radar', options=options, colorscheme='brewer.DarkTwo3')
+mychart = Chart(
+    dataset, "radar", options=options, colorscheme="brewer.DarkTwo3"
+)
 mychart
 ```
 :::
@@ -638,31 +674,43 @@ Here is an example of a scale with custom grid options:
 
 ``` py
 dataset = {
-  'labels': ['Germany','Spain', 'UK', 'Italy', 'Norway', 'France', 'Poland', 
-             'Portugal', 'Sweden', 'Ireland'],
-  'datasets': [{'data': [14, 106, 16, 107, 45, 133, 19, 109, 60, 107],
-                'label': 'Dataset 1', 'fill': True},
-               {'data': [95, 28, 56, 82, 37, 155, 120, 132, 74, 85],
-                'label': 'Dataset 2', 'fill': True}]
+    "labels": [
+        "Germany",
+        "Spain",
+        "UK",
+        "Italy",
+        "Norway",
+        "France",
+        "Poland",
+        "Portugal",
+        "Sweden",
+        "Ireland",
+    ],
+    "datasets": [
+        {
+            "data": [14, 106, 16, 107, 45, 133, 19, 109, 60, 107],
+            "label": "Dataset 1",
+            "fill": True,
+        },
+        {
+            "data": [95, 28, 56, 82, 37, 155, 120, 132, 74, 85],
+            "label": "Dataset 2",
+            "fill": True,
+        },
+    ],
 }
 
 options = {
-  'scales': {
-    'x': {
-      'grid': {
-      'display': True,
-      'color': 'black',
-      'z': -1}},
-    'y': {
-      'grid': {
-      'display': True,
-      'color': 'black',
-      'z': -1}}
-  }
+    "scales": {
+        "x": {"grid": {"display": True, "color": "black", "z": -1}},
+        "y": {"grid": {"display": True, "color": "black", "z": -1}},
+    }
 }
 
 
-mychart = Chart(dataset, 'line', options=options, colorscheme='tableau.JewelBright9')
+mychart = Chart(
+    dataset, "line", options=options, colorscheme="tableau.JewelBright9"
+)
 mychart
 ```
 :::
